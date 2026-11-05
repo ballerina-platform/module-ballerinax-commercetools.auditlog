@@ -401,14 +401,14 @@
                 "description": "Execute a GraphQL request.",
                 "operationId": "queryChangeHistory",
                 "requestBody": {
+                    "description": "GraphQL query and variables to run against the change history",
                     "content": {
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/GraphQLRequest"
                             }
                         }
-                    },
-                    "description": "GraphQL query and variables to run against the change history"
+                    }
                 },
                 "responses": {
                     "200": {
@@ -2244,7 +2244,6 @@
             "GraphQLError": {
                 "required": [
                     "extensions",
-                    "locations",
                     "message"
                 ],
                 "type": "object",
@@ -3899,7 +3898,6 @@
             },
             "GraphQLErrorObject": {
                 "required": [
-                    "//",
                     "code"
                 ],
                 "type": "object",
@@ -3908,9 +3906,7 @@
                         "type": "string"
                     }
                 },
-                "additionalProperties": {
-                    "type": "string"
-                }
+                "additionalProperties": {}
             },
             "RecordPagedQueryResponse": {
                 "required": [
@@ -4722,13 +4718,8 @@
                 }
             },
             "GraphQLVariablesMap": {
-                "required": [
-                    "//"
-                ],
                 "type": "object",
-                "additionalProperties": {
-                    "type": "string"
-                }
+                "additionalProperties": {}
             },
             "ReviewRatingStatistics": {
                 "required": [

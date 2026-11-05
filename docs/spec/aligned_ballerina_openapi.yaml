@@ -309,11 +309,11 @@ paths:
       description: Execute a GraphQL request.
       operationId: queryChangeHistory
       requestBody:
+        description: GraphQL query and variables to run against the change history
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/GraphQLRequest'
-        description: GraphQL query and variables to run against the change history
       responses:
         '200':
           description: Result of the GraphQL query
@@ -1630,7 +1630,6 @@ components:
     GraphQLError:
       required:
       - extensions
-      - locations
       - message
       type: object
       properties:
@@ -2770,14 +2769,12 @@ components:
           type: string
     GraphQLErrorObject:
       required:
-      - //
       - code
       type: object
       properties:
         code:
           type: string
-      additionalProperties:
-        type: string
+      additionalProperties: {}
     RecordPagedQueryResponse:
       required:
       - count
@@ -3345,11 +3342,8 @@ components:
         shippingMethodKey:
           type: string
     GraphQLVariablesMap:
-      required:
-      - //
       type: object
-      additionalProperties:
-        type: string
+      additionalProperties: {}
     ReviewRatingStatistics:
       required:
       - averageRating

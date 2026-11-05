@@ -21,6 +21,10 @@ public function main() returns error? {
         }
     }, apiUrl);
 
+    if pageSize <= 0 {
+        return error(string `pageSize must be a positive number, but it is ${pageSize}`);
+    }
+
     // Step 1: Read every page of change records in the time window
     map<int> changesByUser = {};
     int total = 0;

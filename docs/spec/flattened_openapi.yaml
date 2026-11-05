@@ -310,6 +310,7 @@ paths:
       description: Execute a GraphQL request.
       operationId: ByProjectKeyGraphqlPost
       requestBody:
+        description: GraphQL query and variables to run against the change history
         content:
           application/json:
             schema:
@@ -1951,7 +1952,6 @@ components:
     GraphQLError:
       required:
       - extensions
-      - locations
       - message
       type: object
       properties:
@@ -1990,21 +1990,16 @@ components:
         additionalProperties:
           type: string
     GraphQLVariablesMap:
-      required:
-      - //
       type: object
-      additionalProperties:
-        type: string
+      additionalProperties: {}
     GraphQLErrorObject:
       required:
-      - //
       - code
       type: object
       properties:
         code:
           type: string
-      additionalProperties:
-        type: string
+      additionalProperties: {}
       discriminator:
         propertyName: code
         mapping:

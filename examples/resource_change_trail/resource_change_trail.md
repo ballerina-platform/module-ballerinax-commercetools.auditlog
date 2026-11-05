@@ -19,9 +19,11 @@ tokenUrl = "<auth-url>/oauth/token"
 apiUrl = "<history-api-url>"
 projectKey = "<project-key>"
 resourceType = "product"
+hoursBack = 720.0
+pageSize = 50
 ```
 
-`resourceType` is any resource type supported by the Change History API, for example `product`, `customer` or `order`.
+`resourceType` is any resource type supported by the Change History API, for example `product`, `customer` or `order`. `hoursBack` sets how far back to look for changes (the API's own default is the last 24 hours), and `pageSize` sets how many records are read per request.
 
 ## Run the example
 

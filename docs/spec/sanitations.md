@@ -44,6 +44,11 @@ All changes below were made in the original `docs/spec/openapi.yaml`.
    - **Updated**: All six reference a new `DateFilter` component schema, which has a description.
    - **Reason**: The inline unions generated eighteen near-identical `Datefrom*`/`Dateto*` types.
 
+8. Correct the GraphQL variable and error schemas
+   - **Original**: `GraphQLVariablesMap` and `GraphQLErrorObject` allowed only string values (`additionalProperties: {type: string}`) and both listed `//` as a required property; `GraphQLError` required `locations`.
+   - **Updated**: Both maps accept any JSON value (`additionalProperties: {}`), the `//` entries are removed (`GraphQLErrorObject` still requires `code`), and `locations` is optional on `GraphQLError` (`extensions` and `message` stay required).
+   - **Reason**: GraphQL variables can be numbers, booleans, objects or lists, and error `extensions` carry non-string values such as the numeric `currentVersion`. `//` is a comment leaked from the vendor's source definition, not a property. GraphQL errors that aren't tied to a query position have no `locations`.
+
 ## OpenAPI cli command
 
 The following command was used to generate the Ballerina client from the OpenAPI specification. The command should be executed from the repository root directory.
@@ -52,4 +57,4 @@ The following command was used to generate the Ballerina client from the OpenAPI
 bal openapi -i docs/spec/aligned_ballerina_openapi.json -o ballerina --mode client --client-methods remote --license docs/license.txt
 ```
 
-Note: The license year is hardcoded to 2024, change if necessary.
+Note: The license year is hardcoded to 2026, change if necessary.

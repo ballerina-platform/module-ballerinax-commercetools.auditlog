@@ -108,10 +108,9 @@ public type GraphQLRequest record {
     string operationName?;
 };
 
-public type GraphQLErrorObject record {|
+public type GraphQLErrorObject record {
     string code;
-    string...;
-|};
+};
 
 public type RecordPagedQueryResponse record {
     int:Signed32 total?;
@@ -124,7 +123,7 @@ public type RecordPagedQueryResponse record {
 public type GraphQLError record {
     anydata[] path?;
     GraphQLErrorObject extensions;
-    GraphQLErrorLocation[] locations;
+    GraphQLErrorLocation[] locations?;
     string message;
 };
 
@@ -257,9 +256,8 @@ public type PlatformInitiatedChange "excludeAll"|"addInheritedAssociate"|"change
 
 public type DateStringFilter "now";
 
-public type GraphQLVariablesMap record {|
-    string...;
-|};
+public type GraphQLVariablesMap record {
+};
 
 # Represents the Queries record for the operation: listChangeHistory
 public type ListChangeHistoryQueries record {

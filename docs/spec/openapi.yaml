@@ -2011,7 +2011,6 @@ components:
       type: "object"
       required:
         - extensions
-        - locations
         - message
       properties:
         message:
@@ -2051,10 +2050,7 @@ components:
             type: "string"
     GraphQLVariablesMap:
       type: "object"
-      required:
-        - //
-      additionalProperties:
-        type: "string"
+      additionalProperties: {}
     GraphQLErrorObject:
       type: "object"
       discriminator:
@@ -2062,13 +2058,11 @@ components:
         mapping:
           TooManyRequests: '#/components/schemas/GraphQLTooManyRequestsError'
       required:
-        - //
         - code
       properties:
         code:
           type: "string"
-      additionalProperties:
-        type: "string"
+      additionalProperties: {}
     AddAddressChange:
       allOf:
         - $ref: '#/components/schemas/Change'
