@@ -6,13 +6,13 @@
 
 ## Overview
 
-[commercetools](https://commercetools.com/) is a composable commerce platform that provides API-first building blocks for online storefronts, carts, orders, customers and catalogs. Each commercetools Project has settings that control its currencies, countries, languages, cart and message behaviour, and search indexing.
+[commercetools](https://commercetools.com/) is a composable commerce platform that provides API-first building blocks for storefronts, carts, orders, customers and catalogs. Its Change History API records every change made to the resources of a Project, including who changed what and when.
 
-The commercetools Audit Log connector lets Ballerina applications read and update the settings of a commercetools Project. It supports version 1 of the commercetools HTTP API.
+The commercetools Audit Log connector lets applications query this change history with REST requests or GraphQL queries. It supports version 1 of the commercetools Change History API.
 
 ## Setup guide
 
-To use the commercetools Audit Log connector, you need a commercetools Project and an API client that can access its settings. If you do not have a commercetools account, you can sign up for a trial [here](https://commercetools.com/free-trial).
+To use the commercetools Audit Log connector, you need a commercetools Project and an API client that can read its change history. If you do not have a commercetools account, you can sign up for a trial [here](https://commercetools.com/free-trial).
 
 ### Step 1: Create an API client
 
@@ -20,7 +20,7 @@ To use the commercetools Audit Log connector, you need a commercetools Project a
 
 2. Go to **Settings** → **Developer settings** and select **Create new API client**.
 
-3. Give the client a name and select the scopes **View project settings** (`view_project_settings`) and **Manage project settings** (`manage_project_settings`).
+3. Give the client a name and select the scope **View audit log** (`view_audit_log`). To read the history of a resource type, also grant the view scope of that type, for example `view_products` for products.
 
 ### Step 2: Note down the credentials
 
@@ -29,8 +29,8 @@ After the client is created, copy the following values. The client secret is sho
 * Project key
 * Client ID
 * Client secret
-* Auth URL, for example `https://auth.europe-west1.gcp.commercetools.com`
-* API URL, for example `https://api.europe-west1.gcp.commercetools.com`
+* Auth URL, for example `https://auth.us-central1.gcp.commercetools.com`
+* Change History API URL, for example `https://history.us-central1.gcp.commercetools.com`
 
 The token URL is the auth URL followed by `/oauth/token`.
 
@@ -54,7 +54,7 @@ import ballerinax/commercetools.auditlog;
 clientId = "<Client ID>"
 clientSecret = "<Client Secret>"
 tokenUrl = "<Auth URL>/oauth/token"
-apiUrl = "<API URL>"
+apiUrl = "<Change History API URL>"
 projectKey = "<Project key>"
 ```
 
@@ -80,11 +80,11 @@ final auditlog:Client commercetools = check new ({
 
 Now, utilize the available connector operations.
 
-#### Get the Project settings
+#### List the change history of a Project
 
 ```ballerina
 public function main() returns error? {
-    auditlog:Project _ = check commercetools->getProject(projectKey);
+    auditlog:RecordPagedQueryResponse _ = check commercetools->listChangeHistory(projectKey);
 }
 ```
 
@@ -98,9 +98,9 @@ bal run
 
 The commercetools Audit Log connector provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/), covering the following use cases:
 
-1. [Project settings review](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/project_settings_review) - Read the Project settings, report the currency, country, language, cart and message configuration, and fail when a required currency is missing.
+1. [Recent changes report](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/recent_changes_report) - Read the Project's change history for a recent time window, follow every page, and report how many changes each user made.
 
-2. [Project name update](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/project_name_update) - Rename the Project with a versioned update action and verify the change by reading the Project again.
+2. [Resource change trail](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/resource_change_trail) - Find the most recently changed resource of a type and print its full change trail.
 
 ## Build from the source
 

@@ -13,7 +13,7 @@
 // "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
-// under the License.
+
 import ballerina/http;
 import ballerina/os;
 import ballerina/test;
@@ -25,8 +25,7 @@ final string clientId = isLiveServer ? os:getEnv("COMMERCETOOLS_CLIENT_ID") : "t
 final string clientSecret = isLiveServer ? os:getEnv("COMMERCETOOLS_CLIENT_SECRET") : "test-client-secret";
 final string projectKey = isLiveServer ? os:getEnv("COMMERCETOOLS_PROJECT_KEY") : "test-project";
 
-// The mock token endpoint starts after module initialisation, so the client is created before the suite.
-isolated Client? commercetoolsClient = ();
+isolated Client? historyClient = ();
 
 @test:BeforeSuite
 function initClient() returns error? {
@@ -39,13 +38,13 @@ function initClient() returns error? {
         httpVersion: isLiveServer ? http:HTTP_2_0 : http:HTTP_1_1
     }, serviceUrl);
     lock {
-        commercetoolsClient = c;
+        historyClient = c;
     }
 }
 
 isolated function getClient() returns Client|error {
     lock {
-        Client? c = commercetoolsClient;
+        Client? c = historyClient;
         if c is Client {
             return c;
         }
@@ -54,29 +53,42 @@ isolated function getClient() returns Client|error {
 }
 
 @test:Config {groups: ["live_tests", "mock_tests"]}
-isolated function testGetProject() returns error? {
-    Client commercetools = check getClient();
-    Project project = check commercetools->getProject(projectKey);
-    test:assertEquals(project.'key, projectKey);
-    test:assertTrue(project.name.length() > 0);
-    test:assertTrue(project.currencies.length() > 0);
+isolated function testListChangeHistory() returns error? {
+    Client history = check getClient();
+    RecordPagedQueryResponse response = check history->listChangeHistory(projectKey, resourceTypes = ["product", "customer"], 'limit = 20);
+    test:assertEquals(response.count, response.results.length());
+    test:assertTrue(response.results.length() > 0);
 }
 
 @test:Config {groups: ["live_tests", "mock_tests"]}
-isolated function testUpdateProject() returns error? {
-    Client commercetools = check getClient();
-    Project current = check commercetools->getProject(projectKey);
-    // Live runs keep the current name so the real Project is not renamed.
-    string newName = isLiveServer ? current.name : "Test Project Renamed";
-    Project updated = check commercetools->updateProject(projectKey, {
-        version: current.version,
-        actions: [{action: "changeName", "name": newName}]
-    });
-    test:assertEquals(updated.'key, projectKey);
-    test:assertEquals(updated.name, newName);
-    if isLiveServer {
-        test:assertTrue(updated.version >= current.version);
-    } else {
-        test:assertTrue(updated.version > current.version);
+isolated function testListResourceTypeChangeHistory() returns error? {
+    Client history = check getClient();
+    RecordPagedQueryResponse response = check history->listResourceTypeChangeHistory(projectKey, "product", 'limit = 10);
+    test:assertEquals(response.count, response.results.length());
+    test:assertTrue(response.results.length() > 0);
+}
+
+@test:Config {groups: ["live_tests", "mock_tests"]}
+isolated function testGetResourceChangeHistory() returns error? {
+    Client history = check getClient();
+    RecordPagedQueryResponse response = check history->listResourceTypeChangeHistory(projectKey, "product", 'limit = 1);
+    if response.results.length() == 0 {
+        return;
     }
+    string? resourceId = response.results[0].'resource.id;
+    if resourceId is () {
+        return;
+    }
+    RecordPagedQueryResponse resourceHistory = check history->getResourceChangeHistory(projectKey, "product", resourceId);
+    test:assertTrue(resourceHistory.results.length() > 0);
+}
+
+@test:Config {groups: ["live_tests", "mock_tests"]}
+isolated function testQueryChangeHistory() returns error? {
+    Client history = check getClient();
+    GraphQLResponse response = check history->queryChangeHistory(projectKey, {
+        query: "query { changes(limit: 1) { total count } }"
+    });
+    test:assertTrue(response?.errors is ());
+    test:assertTrue(response?.data !is ());
 }

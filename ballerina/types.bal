@@ -19,14 +19,6 @@
 
 import ballerina/http;
 
-public type Locale string;
-
-public type StoreKeyReference record {
-    *KeyReference;
-    ReferenceTypeId typeId;
-    string 'key;
-};
-
 # OAuth2 Client Credentials Grant Configs
 public type OAuth2ClientCredentialsGrantConfig record {|
     *http:OAuth2ClientCredentialsGrantConfig;
@@ -34,110 +26,125 @@ public type OAuth2ClientCredentialsGrantConfig record {|
     string tokenUrl = "https://auth.us-central1.gcp.commercetools.com/oauth/token";
 |};
 
-public type Address record {
-    *BaseAddress;
-    CountryCode country?;
-    string lastName?;
-    string city?;
-    string postalCode?;
-    string title?;
-    string building?;
-    string streetName?;
-    string company?;
-    string id?;
-    string state?;
-    string department?;
-    string fax?;
-    string 'key?;
-    string email?;
-    string pOBox?;
-    string streetNumber?;
-    CustomFields custom?;
-    string mobile?;
-    string externalId?;
-    string additionalAddressInfo?;
-    string firstName?;
-    string phone?;
-    string additionalStreetInfo?;
-    string salutation?;
-    string region?;
-    string apartment?;
-};
-
 public type KeyReference record {
     ReferenceTypeId typeId;
     string 'key;
 };
 
-public type Customer record {
-    *BaseResource;
-    string lastName?;
-    Address[] addresses;
-    string lastModifiedAt;
-    string companyName?;
-    string vatId?;
-    string title?;
-    Locale locale?;
-    string[] shippingAddressIds;
-    boolean isEmailVerified;
-    string createdAt;
-    string password?;
-    string id;
-    AuthenticationMode authenticationMode;
+public type Label record {
+    string 'type;
+};
+
+public type GraphQLErrorLocation record {
+    int line;
+    int column;
+};
+
+public type ModifiedBy record {
+    string anonymousId?;
+    string clientId?;
+    boolean isPlatformClient;
+    string id?;
+    string 'type;
+    Reference associate?;
+    Reference customer?;
+};
+
+# Represents the Queries record for the operation: listResourceTypeChangeHistory
+public type ListResourceTypeChangeHistoryQueries record {
+    # Filter changes made through the API client with this ID
+    string clientId?;
+    # Filter changes made on behalf of the business unit with this key
+    string businessUnit?;
+    # Number of records to skip, for pagination
+    int:Signed32 offset?;
+    # Filter records by the keys of the changed resources
+    string resourceKey?;
+    # Whether to leave out changes made by the commercetools platform itself
+    PlatformInitiatedChange[] excludePlatformInitiatedChanges?;
+    # Filter changes made in the stores with these keys
+    string[] stores?;
+    # Filter records by the type of change, for example `addLineItem` or `setName`
+    string[] changes?;
+    # Filter records by the origin of the change, for example the Merchant Center or the API
+    Source 'source?;
+    # Filter records by the type of the change
+    string 'type?;
+    # Filter changes made by the user with this ID
+    string userId?;
+    # Filter changes made by the associate with this ID
+    string associateId?;
+    # Reference expansion paths to resolve in the returned records
+    boolean expand?;
+    # Filter changes made by the users with these IDs
+    string[] userIds?;
+    # Whether to include the total number of matching records in the response
+    boolean withTotal?;
+    # Maximum number of records to return. Defaults to 20
+    int:Signed32 'limit?;
+    # Filter changes made by the customer with this ID
+    string customerId?;
+    # Start of the time range, as a date-time or a number of hours before now. Defaults to 24 hours ago
+    @http:Query {name: "date.from"}
+    DateFilter dateFrom?;
+    # End of the time range, as a date-time or `now`. Defaults to `now`
+    @http:Query {name: "date.to"}
+    DateFilter dateTo?;
+    # Filter records by the IDs of the changed resources
+    string[] resourceIds?;
+};
+
+public type Source "MerchantCenter"|"ImpEx"|"ApiClient";
+
+public type ResourceIdentifier record {
+    ReferenceTypeId typeId;
+    string id?;
     string 'key?;
-    string email;
-    CustomerGroupReference customerGroup?;
-    StoreKeyReference[] stores;
-    LastModifiedBy lastModifiedBy?;
-    CustomFields custom?;
-    string externalId?;
-    string dateOfBirth?;
-    CustomerGroupAssignment[] customerGroupAssignments;
-    string customerNumber?;
-    string defaultShippingAddressId?;
-    string[] billingAddressIds;
-    int version;
-    string defaultBillingAddressId?;
-    string firstName?;
-    CreatedBy createdBy?;
-    string middleName?;
-    string salutation?;
 };
 
-public type RoundingMode "HalfEven"|"HalfUp"|"HalfDown";
-
-public type FieldDefinition record {
-    string name;
-    TypeTextInputHint inputHint?;
-    LocalizedString label;
-    FieldType 'type;
-    boolean required;
+public type GraphQLRequest record {
+    GraphQLVariablesMap variables?;
+    string query;
+    string operationName?;
 };
 
-public type BusinessUnitConfiguration record {
-    AssociateRoleKeyReference myBusinessUnitAssociateRoleOnCreation?;
-    BusinessUnitConfigurationStatus myBusinessUnitStatusOnCreation;
+public type GraphQLErrorObject record {|
+    string code;
+    string...;
+|};
+
+public type RecordPagedQueryResponse record {
+    int:Signed32 total?;
+    int:Signed32 offset;
+    int:Signed32 'limit;
+    int:Signed32 count;
+    Record[] results;
 };
 
-public type CustomerGroupAssignment record {
-    CustomerGroupReference customerGroup;
+public type GraphQLError record {
+    anydata[] path?;
+    GraphQLErrorObject extensions;
+    GraphQLErrorLocation[] locations;
+    string message;
 };
 
-public type SearchIndexingConfiguration record {
-    SearchIndexingConfigurationValues businessUnits?;
-    SearchIndexingConfigurationValues productsSearch?;
-    SearchIndexingConfigurationValues orders?;
-    SearchIndexingConfigurationValues customers?;
-    SearchIndexingConfigurationValues products?;
+public type Record record {
+    boolean withoutChanges;
+    KeyReference businessUnit?;
+    ResourceIdentifier 'resource;
+    int:Signed32 previousVersion;
+    string modifiedAt;
+    KeyReference[] stores;
+    Label previousLabel;
+    Change[] changes;
+    ModifiedBy modifiedBy;
+    Label label;
+    string 'type;
+    int:Signed32 version;
 };
 
-public type SearchIndexingConfigurationStatus "Activated"|"Deactivated"|"Indexing";
-
-public type CurrencyCode string;
-
-public type BusinessUnitConfigurationStatus "Active"|"Inactive";
-
-public type ResourceTypeId "address"|"asset"|"approval-flow"|"approval-rule"|"associate-role"|"business-unit"|"cart-discount"|"category"|"channel"|"customer"|"customer-group"|"custom-line-item"|"discount-code"|"inventory-entry"|"line-item"|"order"|"order-edit"|"order-delivery"|"order-parcel"|"order-return-item"|"payment"|"payment-interface-interaction"|"payment-method"|"payment-method-info"|"product-price"|"product-selection"|"product-tailoring"|"quote"|"reservation"|"review"|"recurring-order"|"shipping"|"shipping-method"|"shopping-list"|"shopping-list-text-line-item"|"standalone-price"|"store"|"transaction";
+# A point in time for filtering change history: the keyword `now`, a date-time string, or a number of hours before now
+public type DateFilter DateStringFilter|DateTimeFilterValue|HoursAgoFilterValue;
 
 # Provides a set of configurations for controlling the behaviours when communicating with a remote HTTP endpoint.
 @display {label: "Connection Config"}
@@ -183,233 +190,121 @@ public type ConnectionConfig record {|
     boolean laxDataBinding = true;
 |};
 
-public type CreatedBy record {
-    *ClientLogging;
-    string anonymousId?;
-    string clientId?;
-    string externalUserId?;
-    Attribution attributedTo?;
-    CustomerReference associate?;
-    CustomerReference customer?;
-};
+public type DateTimeFilterValue string;
 
-public type ShoppingListsConfiguration record {
-    int deleteDaysAfterLastModification;
-};
-
-public type CustomerGroup record {
-    *BaseResource;
-    string createdAt;
-    string lastModifiedAt;
-    CreatedBy createdBy?;
-    LastModifiedBy lastModifiedBy?;
-    CustomFields custom?;
-    string name;
-    string id;
-    int version;
-    string 'key?;
-};
-
-public type Attribution record {
-    string clientId?;
-    AttributionSource 'source;
-};
-
-public type DiscountsConfiguration record {
-    DiscountCombinationMode discountCombinationMode;
-};
-
-public type AuthenticationMode "Password"|"ExternalAuth";
-
-public type ShippingRateInputType record {
-    ShippingRateTierType 'type;
-};
-
-public type Project record {
-    ExternalOAuth externalOAuth?;
-    ShoppingListsConfiguration shoppingLists?;
-    Locale[] languages;
-    SearchIndexingConfiguration searchIndexing?;
-    CountryCode[] countries;
-    InventoryConfiguration inventory;
-    int version;
-    string trialUntil?;
-    ProductCatalogModel productCatalogModel?;
-    ShippingRateInputType shippingRateInputType?;
-    string createdAt;
-    BusinessUnitConfiguration businessUnits?;
-    CartsConfiguration carts;
-    DiscountsConfiguration discounts;
-    string name;
-    MessagesConfiguration messages;
-    string 'key;
-    CurrencyCode[] currencies;
-};
-
-public type CustomFields record {
-    TypeReference 'type;
-    FieldContainer fields;
-};
-
-public type CustomerReference record {
-    *Reference;
-    Customer obj?;
-    ReferenceTypeId typeId;
-    string id;
-};
-
-public type ShippingRateTierType "CartValue"|"CartClassification"|"CartScore";
-
-public type SearchIndexingConfigurationValues record {
-    string lastModifiedAt?;
-    LastModifiedBy lastModifiedBy?;
-    SearchIndexingConfigurationStatus status?;
-};
-
-public type AssociateRoleKeyReference record {
-    *KeyReference;
-    ReferenceTypeId typeId;
-    string 'key;
-};
-
-public type LastModifiedBy record {
-    *ClientLogging;
-    string anonymousId?;
-    string clientId?;
-    string externalUserId?;
-    Attribution attributedTo?;
-    CustomerReference associate?;
-    CustomerReference customer?;
-};
-
-public type DiscountCombinationMode "BestDeal"|"Stacking";
-
-public type LocalizedString record {|
-    string...;
-|};
-
-public type ProjectUpdate record {
-    int version;
-    ProjectUpdateAction[] actions;
-};
-
-public type AttributionSource "Import"|"Export";
-
-public type CustomerGroupReference record {
-    *Reference;
-    CustomerGroup obj?;
-    ReferenceTypeId typeId;
-    string id;
-};
-
-public type TypeReference record {
-    *Reference;
-    Type obj?;
-    ReferenceTypeId typeId;
-    string id;
-};
-
-public type ProductCatalogModel "Classic"|"InMigration"|"Modular";
-
-public type CountryCode string;
-
-public type FieldContainer record {|
-    string...;
-|};
-
-public type ExternalOAuth record {
-    string authorizationHeader;
-    string url;
-};
-
-public type TypeTextInputHint "SingleLine"|"MultiLine";
-
-public type CartsConfiguration record {
-    RoundingMode taxRoundingMode?;
-    boolean countryTaxRateFallbackEnabled?;
-    int deleteDaysAfterLastModification;
-    RoundingMode priceRoundingMode?;
-};
+public type HoursAgoFilterValue decimal;
 
 public type Reference record {
     ReferenceTypeId typeId;
     string id;
 };
 
-public type ClientLogging record {
-    string anonymousId?;
+public type ChangeHistoryResourceType "associate-role"|"business-unit"|"cart-discount"|"category"|"channel"|"customer"|"customer-group"|"discount-code"|"inventory-entry"|"key-value-document"|"order"|"payment"|"product"|"product-discount"|"product-selection"|"product-type"|"quote-request"|"quote"|"review"|"shipping-method"|"shopping-list"|"staged-quote"|"standalone-price"|"state"|"store"|"tax-category"|"type"|"zone";
+
+public type GraphQLResponse record {
+    anydata data?;
+    GraphQLError[] errors?;
+};
+
+public type ReferenceTypeId "approval-flow"|"approval-rule"|"associate-role"|"attribute-group"|"business-unit"|"cart"|"cart-discount"|"category"|"channel"|"customer"|"customer-email-token"|"customer-group"|"customer-password-token"|"direct-discount"|"discount-code"|"discount-group"|"extension"|"inventory-entry"|"key-value-document"|"order"|"order-edit"|"payment-method"|"payment"|"product"|"product-discount"|"product-price"|"product-selection"|"product-tailoring"|"product-type"|"quote"|"quote-request"|"recurrence-policy"|"recurring-order"|"review"|"shipping-method"|"shopping-list"|"staged-quote"|"standalone-price"|"state"|"store"|"subscription"|"tax-category"|"type"|"zone";
+
+public type Change record {
+    string change;
+    string 'type;
+};
+
+# Represents the Queries record for the operation: getResourceChangeHistory
+public type GetResourceChangeHistoryQueries record {
+    # Filter changes made through the API client with this ID
     string clientId?;
-    string externalUserId?;
-    CustomerReference associate?;
-    CustomerReference customer?;
+    # Filter changes made on behalf of the business unit with this key
+    string businessUnit?;
+    # Number of records to skip, for pagination
+    int:Signed32 offset?;
+    # Whether to leave out changes made by the commercetools platform itself
+    PlatformInitiatedChange[] excludePlatformInitiatedChanges?;
+    # Filter changes made in the stores with these keys
+    string[] stores?;
+    # Filter records by the type of change, for example `addLineItem` or `setName`
+    string[] changes?;
+    # Filter records by the origin of the change, for example the Merchant Center or the API
+    Source 'source?;
+    # Filter records by the type of the change
+    string 'type?;
+    # Filter changes made by the user with this ID
+    string userId?;
+    # Filter changes made by the associate with this ID
+    string associateId?;
+    # Reference expansion paths to resolve in the returned records
+    boolean expand?;
+    # Filter changes made by the users with these IDs
+    string[] userIds?;
+    # Whether to include the total number of matching records in the response
+    boolean withTotal?;
+    # Maximum number of records to return. Defaults to 20
+    int:Signed32 'limit?;
+    # Filter changes made by the customer with this ID
+    string customerId?;
+    # Start of the time range, as a date-time or a number of hours before now. Defaults to 24 hours ago
+    @http:Query {name: "date.from"}
+    DateFilter dateFrom?;
+    # End of the time range, as a date-time or `now`. Defaults to `now`
+    @http:Query {name: "date.to"}
+    DateFilter dateTo?;
 };
 
-public type BaseResource record {
-    string createdAt;
-    string lastModifiedAt;
-    string id;
-    int version;
-};
+public type PlatformInitiatedChange "excludeAll"|"addInheritedAssociate"|"changeIncludedInStatistics"|"changeInheritedAssociate"|"changeLastVariantId"|"changeLineItemName"|"changeLineItemPublished"|"changeReviewRatingStatistics"|"changeTopLevelUnit"|"removeInheritedAssociate"|"setAncestors"|"setApplicationVersion"|"setInheritedAssociates"|"setInheritedStores"|"setIsValid"|"setLineItemDeactivatedAt"|"setProductCount"|"setReservations"|"setVariantAvailability";
 
-public type ProjectUpdateAction record {
-    string action;
-};
+public type DateStringFilter "now";
 
-public type ReferenceTypeId "approval-flow"|"approval-rule"|"associate-role"|"attribute-group"|"business-unit"|"cart"|"cart-discount"|"category"|"channel"|"customer"|"customer-email-token"|"customer-group"|"customer-password-token"|"direct-discount"|"discount-code"|"discount-group"|"extension"|"inventory-entry"|"key-value-document"|"mcp-server"|"order"|"order-edit"|"payment-method"|"payment"|"product"|"product-discount"|"product-price"|"product-selection"|"product-tailoring"|"product-type"|"quote"|"quote-request"|"recurrence-policy"|"recurring-order"|"reservation"|"review"|"shipping-method"|"shopping-list"|"staged-quote"|"standalone-price"|"state"|"store"|"subscription"|"tax-category"|"type"|"variant"|"zone";
+public type GraphQLVariablesMap record {|
+    string...;
+|};
 
-public type InventoryConfiguration record {
-    boolean releaseExpiredReservations;
-    int:Signed32 reservationExpirationInMinutes?;
-};
-
-public type MessagesConfiguration record {
-    int:Signed32 deleteDaysAfterCreation?;
-    boolean enabled;
-};
-
-public type BaseAddress record {
-    CountryCode country;
-    string lastName?;
-    string city?;
-    string postalCode?;
-    string title?;
-    string building?;
-    string streetName?;
-    string company?;
-    string id?;
-    string state?;
-    string department?;
-    string fax?;
-    string 'key?;
-    string email?;
-    string pOBox?;
-    string streetNumber?;
-    string mobile?;
-    string externalId?;
-    string additionalAddressInfo?;
-    string firstName?;
-    string phone?;
-    string additionalStreetInfo?;
-    string salutation?;
-    string region?;
-    string apartment?;
-};
-
-public type FieldType record {
-    string name;
-};
-
-public type Type record {
-    *BaseResource;
-    string createdAt;
-    string lastModifiedAt;
-    CreatedBy createdBy?;
-    LastModifiedBy lastModifiedBy?;
-    LocalizedString name;
-    LocalizedString description?;
-    FieldDefinition[] fieldDefinitions;
-    string id;
-    int version;
-    string 'key;
-    ResourceTypeId[] resourceTypeIds;
+# Represents the Queries record for the operation: listChangeHistory
+public type ListChangeHistoryQueries record {
+    # Resource types to include in the change history
+    ChangeHistoryResourceType[] resourceTypes?;
+    # Filter records by the ID of the changed resource
+    string resourceId?;
+    # Filter changes made through the API client with this ID
+    string clientId?;
+    # Filter changes made on behalf of the business unit with this key
+    string businessUnit?;
+    # Number of records to skip, for pagination
+    int:Signed32 offset?;
+    # Filter records by the keys of the changed resources
+    string resourceKey?;
+    # Whether to leave out changes made by the commercetools platform itself
+    PlatformInitiatedChange[] excludePlatformInitiatedChanges?;
+    # Filter changes made in the stores with these keys
+    string[] stores?;
+    # Filter records by the type of change, for example `addLineItem` or `setName`
+    string[] changes?;
+    # Filter records by the origin of the change, for example the Merchant Center or the API
+    Source 'source?;
+    # Filter records by the type of the change
+    string 'type?;
+    # Filter changes made by the user with this ID
+    string userId?;
+    # Filter changes made by the associate with this ID
+    string associateId?;
+    # Reference expansion paths to resolve in the returned records
+    boolean expand?;
+    # Filter changes made by the users with these IDs
+    string[] userIds?;
+    # Whether to include the total number of matching records in the response
+    boolean withTotal?;
+    # Maximum number of records to return. Defaults to 20
+    int:Signed32 'limit?;
+    # Filter changes made by the customer with this ID
+    string customerId?;
+    # Start of the time range, as a date-time or a number of hours before now. Defaults to 24 hours ago
+    @http:Query {name: "date.from"}
+    DateFilter dateFrom?;
+    # End of the time range, as a date-time or `now`. Defaults to `now`
+    @http:Query {name: "date.to"}
+    DateFilter dateTo?;
+    # Filter records by the IDs of the changed resources
+    string[] resourceIds?;
 };

@@ -25,7 +25,7 @@ service /oauth on tokenEp {
             access_token: "mock-access-token",
             token_type: "bearer",
             expires_in: 3600,
-            scope: "view_project_settings:test-project manage_project_settings:test-project"
+            scope: "view_audit_log:test-project"
         };
     }
 }

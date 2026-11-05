@@ -1,6 +1,6 @@
 [package]
 org = "ballerinax"
-name = "project_settings_review"
+name = "resource_change_trail"
 version = "0.1.0"
 distribution = "2201.12.0"
 

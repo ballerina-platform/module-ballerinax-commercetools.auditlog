@@ -17,184 +17,70 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import ballerina/data.jsondata;
 import ballerina/http;
-
-isolated Project mockProject = {
-    'key: "test-project",
-    name: "Test Project",
-    countries: ["DE", "US"],
-    currencies: ["EUR", "USD"],
-    languages: ["en", "de"],
-    createdAt: "2025-01-15T09:30:00.000Z",
-    version: 7,
-    trialUntil: "2026-12",
-    messages: {enabled: true, deleteDaysAfterCreation: 15},
-    carts: {deleteDaysAfterLastModification: 90, countryTaxRateFallbackEnabled: false},
-    discounts: {discountCombinationMode: "Stacking"},
-    inventory: {releaseExpiredReservations: true, reservationExpirationInMinutes: 60},
-    shoppingLists: {deleteDaysAfterLastModification: 360}
-};
 
 listener http:Listener ep0 = new (9090);
 
 service / on ep0 {
-    # Get project settings
+    # List change history of project resources
     #
     # + return - returns can be any of following types 
-    # http:Ok (The Project with its settings and configuration)
-    # http:BadRequest (## Bad Request
-# 
-# A 400 is the most commonly expected error response and indicates that a request failed due to providing bad input.
-# Bad input can be a malformed request body, missing required parameters, wrongly typed or malformed parameters or
-# a parameter that references another resource that does not exist. Clients need to resolve the problems mentioned
-# in the response before re-sending the request.
-# 
-# The following general error codes can appear in responses with the HTTP status code `400`:
-# 
-# * `InvalidInput`
-#   Invalid input has been sent to the service.
-#   The client application should validate the input according to the constraints described in the error message
-#   before sending the request.
-# 
-# * `InvalidOperation`
-#   The resource(s) involved in the request are not in a valid state for the operation. The client application
-#   should validate the constraints described in the error message before sending the request.
-# 
-# * `InvalidField`
-#   A field has an invalid value.
-#   Extra fields:
-#   * `field` - String
-#     The name of the field.
-#   * `invalidValue` - *
-#     The invalid value.
-#   * `allowedValues` - Array of * - Optional
-#     A fixed set of allowed values for the field, if any.
-# 
-# * `RequiredField`
-#   A required field is missing a value.
-#   Extra fields:
-#   * `field` - String
-#     The name of the field.
-# 
-# * `DuplicateField`
-#   A value for a field conflicts with an existing duplicate value.
-#   Extra fields:
-#   * `field` - String
-#     The name of the field.
-#   * `duplicateValue` - *
-#     The offending duplicate value.)
-    # http:Unauthorized (## Unauthorized
-# 
-# A 401 indicates that the request is not properly authenticated.)
-    # http:Forbidden (## Forbidden
-# 
-# A 403 indicates that the authenticated client is not allowed to perform the request.)
-    # http:NotFound (## Not Found
-# 
-# A 404 indicates that the addressed resource was not found / does not exist.
-# 
-# The following general error codes can appear in responses with the HTTP status code `404`:
-# 
-# * `ResourceNotFound`
-#   The resource addressed by the request URL does not exist.)
-    # http:InternalServerError (## Internal Server Error
-# 
-# A 500 indicates that a request failed due to a server-side problem that needs to be resolved before subsequent
-# requests can succeed. It either indicates a temporary unavailability or permanent server-side problem that needs
-# to be reported and resolved.
-# 
-# The following general error codes can appear in responses with the HTTP status code `500`:
-# 
-# * `General`
-#   A server-side problem occurred that is not further specified.
-#   These errors [should be reported](https://support.commercetools.com/).)
-    # http:BadGateway (A 502 indicates that a request failed due to a server-side problem caused by scaling infrastructure resources.
-# The client application should retry the request with exponential backoff up to a point where further delay is unacceptable.)
-    # http:ServiceUnavailable (## Service Unavailable
-# 
-# The following general error codes can appear in responses with the HTTP status code `503`:
-# 
-# * `OverCapacity`
-#   The service is having trouble handling the load. The client application should retry the request with
-#   exponential backoff up to a point where further delay is unacceptable.
-# 
-# * `PendingOperation`
-#   A previous conflicting operation is still pending and needs to finish before the request can succeed.
-#   The client application should retry the request with exponential backoff up to a point where further delay
-#   is unacceptable. If these errors persist, [should be reported](https://support.commercetools.com/).)
-    resource function get [string projectKey]() returns Project|ErrorResponseBadRequest|ErrorResponseUnauthorized|ErrorResponseForbidden|http:NotFound|ErrorResponseInternalServerError|ErrorResponseBadGateway|ErrorResponseServiceUnavailable {
-        lock {
-            if projectKey != mockProject.'key {
-                return http:NOT_FOUND;
-            }
-            return mockProject.clone();
-        }
+    # http:Ok (Records of the resource under query)
+    # http:BadRequest (Bad Request. A 400 is the most commonly expected error response and indicates that a request failed due to providing bad input. Bad input can be a malformed request body, missing required parameters, wrongly typed or malformed parameters or a parameter that references another resource that does not exist. Clients need to resolve the problems mentioned in the response before re-sending the request.)
+    # http:Unauthorized (Unauthorized. Indicate that the request is not properly authenticated.)
+    # http:Forbidden (Forbidden. Indicates that the authenticated client is not allowed to perform the request.)
+    # http:TooManyRequests (Too Many Requests. Indicates that the client has exceeded the API rate limit. Reduce the date range and resource types in your query to minimize the token usage, or retry the request after some time (indicated in the `Retry-After` header).)
+    # http:InternalServerError (Internal Server Error. A 500 indicates that the request failed due to a server-side problem that needs to be resolved before subsequent requests can succeed. It either indicates a temporary unavailability or permanent server-side problem that needs to be reported and resolved.)
+    # http:ServiceUnavailable (Service Unavailable. The following general error codes can appear in responses with the HTTP status code `503`
+# - `OverCapacity` The service is having trouble handling the load. The client application should retry the request with exponential backoff up to a point where further delay is unacceptable.)
+    resource function get [string projectKey](ChangeHistoryResourceType[]? resourceTypes, @http:Query {name: "date.from"} string? dateFrom, @http:Query {name: "date.to"} string? dateTo, int:Signed32? 'limit, int:Signed32? offset, string? userId, string[]? userIds, string? clientId, string? customerId, string? associateId, string? businessUnit, string? 'type, string? resourceId, string[]? resourceIds, string? resourceKey, Source? 'source, string[]? changes, string[]? stores, PlatformInitiatedChange[]? excludePlatformInitiatedChanges, boolean? expand, boolean? withTotal) returns RecordPagedQueryResponse|ErrorResponseBadRequest|ErrorResponseUnauthorized|ErrorResponseForbidden|ErrorResponseTooManyRequests|ErrorResponseInternalServerError|ErrorResponseServiceUnavailable {
+        return {total: 2, offset: 0, count: 2, 'limit: 20, results: [mockRecord("product", "3f2c1c1e-8f5a-4c58-9a1d-0d6f3f9f7a11", 3), mockRecord("customer", "b1c9e8f2-6d4a-4a77-9c0e-71f2d3a4b5c6", 5)]};
     }
 
-    # Update project settings
+    # List change history of a resource type
     #
-    # + payload - The Project version and the update actions to apply 
     # + return - returns can be any of following types 
-    # http:Ok (The updated Project)
-    # http:Conflict (## Conflict
-# 
-# A 409 indicates that the current version of the resource targeted by the request (with the intention to modify or delete it) is different from that provided in the request.
-# In response to this, the client will usually want to request the newest version of the resource to see what has been changed and decide what changes to apply to the newest version.
-# 
-# A 409 Conflict indicates a concurrent modification and usually occurs on a versioned resource, which requires the client to provide the version of the resource to perform a change.
-# 
-# The following general error codes can appear in responses with the HTTP status code `409`:
-# 
-# * `ConcurrentModification`
-#   The request conflicts with the current state of the involved resource(s).
-#   Typically, the request attempts to modify a resource that is out of date,
-#   i.e. that has been modified by another client since the last time it was retrieved.
-#   The client application should resolve the conflict (with or without involving the end user)
-#   before retrying the request.)
-    resource function post [string projectKey](@http:Payload ProjectUpdate payload) returns ProjectOk|ErrorResponseConflict|http:NotFound {
-        int expectedVersion = payload.version;
-        ProjectUpdateAction[] & readonly actions = payload.actions.cloneReadOnly();
-        lock {
-            if projectKey != mockProject.'key {
-                return http:NOT_FOUND;
-            }
-            if expectedVersion != mockProject.version {
-                return <ErrorResponseConflict>{
-                    body: {
-                        statusCode: 409,
-                        message: string `Object ${projectKey} has a different version than expected. Expected: ${expectedVersion} - Actual: ${mockProject.version}.`,
-                        errors: [<ErrorObject>{code: "ConcurrentModification", message: "The request conflicts with the current state of the involved resource(s)."}]
-                    }
-                };
-            }
-            foreach ProjectUpdateAction projectAction in actions {
-                if projectAction.action == "changeName" {
-                    anydata newName = projectAction["name"];
-                    if newName is string {
-                        mockProject.name = newName;
-                    }
-                }
-            }
-            mockProject.version = mockProject.version + 1;
-            return <ProjectOk>{body: mockProject.clone()};
-        }
+    # http:Ok (Records of the resource under query)
+    # http:BadRequest (Bad Request. A 400 is the most commonly expected error response and indicates that a request failed due to providing bad input. Bad input can be a malformed request body, missing required parameters, wrongly typed or malformed parameters or a parameter that references another resource that does not exist. Clients need to resolve the problems mentioned in the response before re-sending the request.)
+    # http:Unauthorized (Unauthorized. Indicate that the request is not properly authenticated.)
+    # http:Forbidden (Forbidden. Indicates that the authenticated client is not allowed to perform the request.)
+    # http:TooManyRequests (Too Many Requests. Indicates that the client has exceeded the API rate limit. Reduce the date range and resource types in your query to minimize the token usage, or retry the request after some time (indicated in the `Retry-After` header).)
+    # http:InternalServerError (Internal Server Error. A 500 indicates that the request failed due to a server-side problem that needs to be resolved before subsequent requests can succeed. It either indicates a temporary unavailability or permanent server-side problem that needs to be reported and resolved.)
+    # http:ServiceUnavailable (Service Unavailable. The following general error codes can appear in responses with the HTTP status code `503`
+# - `OverCapacity` The service is having trouble handling the load. The client application should retry the request with exponential backoff up to a point where further delay is unacceptable.)
+    resource function get [string projectKey]/[string resourceType](@http:Query {name: "date.from"} string? dateFrom, @http:Query {name: "date.to"} string? dateTo, int:Signed32? 'limit, int:Signed32? offset, string? userId, string[]? userIds, string[]? resourceIds, string? clientId, string? customerId, string? associateId, string? businessUnit, string? 'type, string? resourceKey, Source? 'source, string[]? changes, string[]? stores, PlatformInitiatedChange[]? excludePlatformInitiatedChanges, boolean? expand, boolean? withTotal) returns RecordPagedQueryResponse|ErrorResponseBadRequest|ErrorResponseUnauthorized|ErrorResponseForbidden|ErrorResponseTooManyRequests|ErrorResponseInternalServerError|ErrorResponseServiceUnavailable {
+        return {total: 2, offset: 0, count: 2, 'limit: 20, results: [mockRecord(resourceType, "3f2c1c1e-8f5a-4c58-9a1d-0d6f3f9f7a11", 3), mockRecord(resourceType, "a7d2b1c4-2e9b-4f0e-8d37-5c1b6e2a9f10", 2)]};
+    }
+
+    # Get change history of a resource
+    #
+    # + return - returns can be any of following types 
+    # http:Ok (Records of the resource under query)
+    # http:BadRequest (Bad Request. A 400 is the most commonly expected error response and indicates that a request failed due to providing bad input. Bad input can be a malformed request body, missing required parameters, wrongly typed or malformed parameters or a parameter that references another resource that does not exist. Clients need to resolve the problems mentioned in the response before re-sending the request.)
+    # http:Unauthorized (Unauthorized. Indicate that the request is not properly authenticated.)
+    # http:Forbidden (Forbidden. Indicates that the authenticated client is not allowed to perform the request.)
+    # http:TooManyRequests (Too Many Requests. Indicates that the client has exceeded the API rate limit. Reduce the date range and resource types in your query to minimize the token usage, or retry the request after some time (indicated in the `Retry-After` header).)
+    # http:InternalServerError (Internal Server Error. A 500 indicates that the request failed due to a server-side problem that needs to be resolved before subsequent requests can succeed. It either indicates a temporary unavailability or permanent server-side problem that needs to be reported and resolved.)
+    # http:ServiceUnavailable (Service Unavailable. The following general error codes can appear in responses with the HTTP status code `503`
+# - `OverCapacity` The service is having trouble handling the load. The client application should retry the request with exponential backoff up to a point where further delay is unacceptable.)
+    resource function get [string projectKey]/[string resourceType]/[string iD](@http:Query {name: "date.from"} string? dateFrom, @http:Query {name: "date.to"} string? dateTo, int:Signed32? 'limit, int:Signed32? offset, string? userId, string[]? userIds, string? clientId, string? customerId, string? associateId, string? businessUnit, string? 'type, Source? 'source, string[]? changes, string[]? stores, PlatformInitiatedChange[]? excludePlatformInitiatedChanges, boolean? expand, boolean? withTotal) returns RecordPagedQueryResponse|ErrorResponseBadRequest|ErrorResponseUnauthorized|ErrorResponseForbidden|ErrorResponseTooManyRequests|ErrorResponseInternalServerError|ErrorResponseServiceUnavailable {
+        return {total: 1, offset: 0, count: 1, 'limit: 20, results: [mockRecord(resourceType, iD, 3)]};
+    }
+
+    # Query change history with GraphQL
+    #
+    # + payload - GraphQL query and variables to run against the change history 
+    # + return - 200 
+    resource function post [string projectKey]/graphql(@http:Payload GraphQLRequest payload) returns GraphQLResponseOk {
+        return {body: {data: {changes: {total: 1, offset: 0, "limit": 20, count: 1, results: [{"resource": {typeId: "product", id: "3f2c1c1e-8f5a-4c58-9a1d-0d6f3f9f7a11"}, "type": "ProductChange", version: 3}]}}}};
     }
 }
 
 // Service-mode response types. `bal openapi --mode client` collapses 4XX/5XX
 // to `error` and never emits these, so they are defined here for the mock only.
-public type ErrorResponseBadGateway record {|
-    *http:BadGateway;
-    ErrorResponse body;
-|};
-
 public type ErrorResponseBadRequest record {|
     *http:BadRequest;
-    ErrorResponse body;
-|};
-
-public type ErrorResponseConflict record {|
-    *http:Conflict;
     ErrorResponse body;
 |};
 
@@ -213,14 +99,19 @@ public type ErrorResponseServiceUnavailable record {|
     ErrorResponse body;
 |};
 
+public type ErrorResponseTooManyRequests record {|
+    *http:TooManyRequests;
+    ErrorResponse body;
+|};
+
 public type ErrorResponseUnauthorized record {|
     *http:Unauthorized;
     ErrorResponse body;
 |};
 
-public type ProjectOk record {|
+public type GraphQLResponseOk record {|
     *http:Ok;
-    Project body;
+    GraphQLResponse body;
 |};
 
 public type ErrorObject record {
@@ -229,7 +120,24 @@ public type ErrorObject record {
 };
 
 public type ErrorResponse record {
+    @jsondata:Name {value: "error_description"}
+    string errorDescription?;
     string message;
+    string 'error?;
     ErrorObject[] errors?;
     int:Signed32 statusCode;
+};
+
+isolated function mockRecord(string resourceType, string id, int:Signed32 version) returns Record => {
+    withoutChanges: false,
+    'resource: {typeId: "product", id},
+    previousVersion: <int:Signed32>(version - 1),
+    modifiedAt: "2026-10-12T09:30:00.000Z",
+    stores: [{typeId: "store", 'key: "us-store"}],
+    previousLabel: {'type: "LocalizedString"},
+    changes: [{change: "setName", 'type: "SetNameChange"}],
+    modifiedBy: {id: "9c1d7a52-4f1e-4b0a-8f3b-2d6e5a1c7b90", isPlatformClient: false, 'type: "user"},
+    label: {'type: "LocalizedString"},
+    'type: resourceType,
+    version
 };

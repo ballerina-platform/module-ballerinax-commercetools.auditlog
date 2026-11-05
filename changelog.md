@@ -7,20 +7,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Removed
+
+- `getProject` and `updateProject` (Project settings operations) and their related types.
+
 ### Changed
 
-- The connector is regenerated from the commercetools Composable Commerce API specification and still exposes the two
-  Project settings operations, now as **remote methods**.
-- Operations are renamed, so every 1.x call site changes:
-
-| 1.x operation | 2.0.0 remote method |
-|---|---|
-| `queryRecords` (`GET /{projectKey}`) | `getProject(projectKey)` |
-| `updateProjectByProjectKey` (`POST /{projectKey}`) | `updateProject(projectKey, payload)` |
-
-- Generated record types follow the current commercetools schema names, for example `Project` and `ProjectUpdate`.
-- Authentication uses the OAuth 2.0 client credentials grant with a configurable `tokenUrl`.
+- The connector is now generated from the commercetools Change History API, matching its Audit Log name, and uses the
+  `history` service URL and the `view_audit_log` scope.
+- All operations are **remote methods**. Authentication uses the OAuth 2.0 client credentials grant with a configurable
+  `tokenUrl`.
 
 ### Added
 
+- Change history operations: `listChangeHistory`, `listResourceTypeChangeHistory`, `getResourceChangeHistory` and
+  `queryChangeHistory` (GraphQL).
 - Two runnable examples under `examples/`, and mock-server based tests.

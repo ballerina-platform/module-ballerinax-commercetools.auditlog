@@ -1,92 +1,962 @@
 openapi: 3.0.0
 info:
-  title: commercetools Composable Commerce API
-  version: v1
+  title: commercetools Change History API
+  description: Query the change history of commercetools project resources, including who changed what
+    and when, using REST or GraphQL requests.
+  version: '1'
 servers:
-- url: https://api.us-central1.gcp.commercetools.com
-  description: The default commercetools HTTP API host (Google Cloud, us-central1). Other regions use
-    the same pattern, for example `https://api.europe-west1.gcp.commercetools.com`.
+- url: https://history.us-central1.gcp.commercetools.com
 paths:
   /{projectKey}:
-    description: The Project endpoint is used to retrieve certain information from a project.
     get:
-      summary: Get project settings
-      description: Retrieves the settings and configuration of the Project.
-      operationId: getProject
+      summary: List change history of project resources
+      description: 'The `view_audit_log:{projectKey}` scope is required, and depending on the [resource
+        type](ctp:history:type:ChangeHistoryResourceType) queried, their respective scopes must be granted.
+
+
+        If the request exceeds the rate limit, a [TooManyRequests](ctp:history:type:TooManyRequestsError)
+        error is returned.'
+      operationId: listChangeHistory
+      parameters:
+      - name: resourceTypes
+        in: query
+        description: Resource types to include in the change history
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChangeHistoryResourceType'
+      - name: date.from
+        in: query
+        description: Start of the time range, as a date-time or a number of hours before now. Defaults
+          to 24 hours ago
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/DateFilter'
+        x-annotation-default: 24
+        x-ballerina-name: dateFrom
+      - name: date.to
+        in: query
+        description: End of the time range, as a date-time or `now`. Defaults to `now`
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/DateFilter'
+        x-annotation-default: now
+        x-ballerina-name: dateTo
+      - name: limit
+        in: query
+        description: Maximum number of records to return. Defaults to 20
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+        x-annotation-default: 20
+      - name: offset
+        in: query
+        description: Number of records to skip, for pagination
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+        x-annotation-default: 0
+      - name: userId
+        in: query
+        description: Filter changes made by the user with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: userIds
+        in: query
+        description: Filter changes made by the users with these IDs
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: clientId
+        in: query
+        description: Filter changes made through the API client with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: customerId
+        in: query
+        description: Filter changes made by the customer with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: associateId
+        in: query
+        description: Filter changes made by the associate with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: businessUnit
+        in: query
+        description: Filter changes made on behalf of the business unit with this key
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        description: Filter records by the type of the change
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: resourceId
+        in: query
+        description: Filter records by the ID of the changed resource
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: resourceIds
+        in: query
+        description: Filter records by the IDs of the changed resources
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: resourceKey
+        in: query
+        description: Filter records by the keys of the changed resources
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: source
+        in: query
+        description: Filter records by the origin of the change, for example the Merchant Center or the
+          API
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Source'
+      - name: changes
+        in: query
+        description: Filter records by the type of change, for example `addLineItem` or `setName`
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: stores
+        in: query
+        description: Filter changes made in the stores with these keys
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: excludePlatformInitiatedChanges
+        in: query
+        description: Whether to leave out changes made by the commercetools platform itself
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlatformInitiatedChange'
+      - name: expand
+        in: query
+        description: Reference expansion paths to resolve in the returned records
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+      - name: withTotal
+        in: query
+        description: Whether to include the total number of matching records in the response
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+        x-annotation-default: false
       responses:
         '200':
-          description: The Project with its settings and configuration
+          description: Records of the resource under query
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Project'
+                $ref: '#/components/schemas/RecordPagedQueryResponse'
         '400':
-          $ref: '#/components/responses/errorable_400'
-        '401':
-          $ref: '#/components/responses/errorable_401'
-        '403':
-          $ref: '#/components/responses/errorable_403'
-        '404':
-          $ref: '#/components/responses/errorable_404'
-        '500':
-          $ref: '#/components/responses/errorable_500'
-        '502':
-          $ref: '#/components/responses/errorable_502'
-        '503':
-          $ref: '#/components/responses/errorable_503'
-      security:
-      - oauth_2_0:
-        - view_project_settings:{projectKey}
-    post:
-      summary: Update project settings
-      description: Updates the settings and configuration of the Project by applying a list of update
-        actions.
-      operationId: updateProject
-      requestBody:
-        description: The Project version and the update actions to apply
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProjectUpdate'
-        required: true
-      responses:
-        '200':
-          description: The updated Project
+          description: Bad Request. A 400 is the most commonly expected error response and indicates that
+            a request failed due to providing bad input. Bad input can be a malformed request body, missing
+            required parameters, wrongly typed or malformed parameters or a parameter that references
+            another resource that does not exist. Clients need to resolve the problems mentioned in the
+            response before re-sending the request.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Project'
-        '409':
-          $ref: '#/components/responses/conflicting_409'
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized. Indicate that the request is not properly authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden. Indicates that the authenticated client is not allowed to perform the
+            request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too Many Requests. Indicates that the client has exceeded the API rate limit. Reduce
+            the date range and resource types in your query to minimize the token usage, or retry the
+            request after some time (indicated in the `Retry-After` header).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error. A 500 indicates that the request failed due to a server-side
+            problem that needs to be resolved before subsequent requests can succeed. It either indicates
+            a temporary unavailability or permanent server-side problem that needs to be reported and
+            resolved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: 'Service Unavailable. The following general error codes can appear in responses
+            with the HTTP status code `503`
+
+            - `OverCapacity` The service is having trouble handling the load. The client application should
+            retry the request with exponential backoff up to a point where further delay is unacceptable.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       security:
       - oauth_2_0:
-        - manage_project_settings:{projectKey}
+        - view_associate_roles:{projectKey}
+        - view_audit_log:{projectKey}
+        - view_business_units:{projectKey}
+        - view_cart_discounts:{projectKey}
+        - view_categories:{projectKey}
+        - view_customers:{projectKey}
+        - view_customers:{projectKey}:{storeKey}
+        - view_customer_groups:{projectKey}
+        - view_discount_codes:{projectKey}
+        - view_key_value_documents:{projectKey}
+        - view_orders:{projectKey}
+        - view_orders:{projectKey}:{storeKey}
+        - view_payments:{projectKey}
+        - view_products:{projectKey}
+        - view_product_selections:{projectKey}
+        - view_quotes:{projectKey}
+        - view_quote_requests:{projectKey}
+        - view_shipping_methods:{projectKey}
+        - view_shopping_lists:{projectKey}
+        - view_shopping_lists:{projectKey}:{storeKey}
+        - view_staged_quotes:{projectKey}
+        - view_standalone_prices:{projectKey}
+        - view_states:{projectKey}
+        - view_stores:{projectKey}
+        - view_tax_categories:{projectKey}
+        - view_types:{projectKey}
     parameters:
     - name: projectKey
       in: path
+      description: The key of the commercetools Project whose change history to read
       required: true
       style: simple
       explode: false
       schema:
         type: string
-    x-annotation-methodName: withProjectKey
-    x-annotation-updateable: Project
+  /{projectKey}/graphql:
+    post:
+      summary: Query change history with GraphQL
+      description: Execute a GraphQL request.
+      operationId: queryChangeHistory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GraphQLRequest'
+        description: GraphQL query and variables to run against the change history
+      responses:
+        '200':
+          description: Result of the GraphQL query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphQLResponse'
+      security:
+      - oauth_2_0:
+        - view_audit_log:{projectKey}
+        - view_categories:{projectKey}
+    parameters:
+    - name: projectKey
+      in: path
+      description: The key of the commercetools Project whose change history to read
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+  /{projectKey}/{resourceType}:
+    get:
+      summary: List change history of a resource type
+      description: 'The `view_audit_log:{projectKey}` scope is required, and depending on the [resource
+        type](ctp:history:type:ChangeHistoryResourceType) queried, their respective scopes must be granted.
+
+
+        If the request exceeds the rate limit, a [TooManyRequests](ctp:history:type:TooManyRequestsError)
+        error is returned.'
+      operationId: listResourceTypeChangeHistory
+      parameters:
+      - name: date.from
+        in: query
+        description: Start of the time range, as a date-time or a number of hours before now. Defaults
+          to 24 hours ago
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/DateFilter'
+        x-annotation-default: 24
+        x-ballerina-name: dateFrom
+      - name: date.to
+        in: query
+        description: End of the time range, as a date-time or `now`. Defaults to `now`
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/DateFilter'
+        x-annotation-default: now
+        x-ballerina-name: dateTo
+      - name: limit
+        in: query
+        description: Maximum number of records to return. Defaults to 20
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+        x-annotation-default: 20
+      - name: offset
+        in: query
+        description: Number of records to skip, for pagination
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+        x-annotation-default: 0
+      - name: userId
+        in: query
+        description: Filter changes made by the user with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: userIds
+        in: query
+        description: Filter changes made by the users with these IDs
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: resourceIds
+        in: query
+        description: Filter records by the IDs of the changed resources
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: clientId
+        in: query
+        description: Filter changes made through the API client with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: customerId
+        in: query
+        description: Filter changes made by the customer with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: associateId
+        in: query
+        description: Filter changes made by the associate with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: businessUnit
+        in: query
+        description: Filter changes made on behalf of the business unit with this key
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        description: Filter records by the type of the change
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: resourceKey
+        in: query
+        description: Filter records by the keys of the changed resources
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: source
+        in: query
+        description: Filter records by the origin of the change, for example the Merchant Center or the
+          API
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Source'
+      - name: changes
+        in: query
+        description: Filter records by the type of change, for example `addLineItem` or `setName`
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: stores
+        in: query
+        description: Filter changes made in the stores with these keys
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: excludePlatformInitiatedChanges
+        in: query
+        description: Whether to leave out changes made by the commercetools platform itself
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlatformInitiatedChange'
+      - name: expand
+        in: query
+        description: Reference expansion paths to resolve in the returned records
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+      - name: withTotal
+        in: query
+        description: Whether to include the total number of matching records in the response
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+        x-annotation-default: false
+      responses:
+        '200':
+          description: Records of the resource under query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordPagedQueryResponse'
+        '400':
+          description: Bad Request. A 400 is the most commonly expected error response and indicates that
+            a request failed due to providing bad input. Bad input can be a malformed request body, missing
+            required parameters, wrongly typed or malformed parameters or a parameter that references
+            another resource that does not exist. Clients need to resolve the problems mentioned in the
+            response before re-sending the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized. Indicate that the request is not properly authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden. Indicates that the authenticated client is not allowed to perform the
+            request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too Many Requests. Indicates that the client has exceeded the API rate limit. Reduce
+            the date range and resource types in your query to minimize the token usage, or retry the
+            request after some time (indicated in the `Retry-After` header).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error. A 500 indicates that the request failed due to a server-side
+            problem that needs to be resolved before subsequent requests can succeed. It either indicates
+            a temporary unavailability or permanent server-side problem that needs to be reported and
+            resolved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: 'Service Unavailable. The following general error codes can appear in responses
+            with the HTTP status code `503`
+
+            - `OverCapacity` The service is having trouble handling the load. The client application should
+            retry the request with exponential backoff up to a point where further delay is unacceptable.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - oauth_2_0:
+        - view_associate_roles:{projectKey}
+        - view_audit_log:{projectKey}
+        - view_business_units:{projectKey}
+        - view_cart_discounts:{projectKey}
+        - view_categories:{projectKey}
+        - view_customers:{projectKey}
+        - view_customer_groups:{projectKey}
+        - view_discount_codes:{projectKey}
+        - view_key_value_documents:{projectKey}
+        - view_orders:{projectKey}
+        - view_orders:{projectKey}:{storeKey}
+        - view_payments:{projectKey}
+        - view_products:{projectKey}
+        - view_product_selections:{projectKey}
+        - view_quotes:{projectKey}
+        - view_quote_requests:{projectKey}
+        - view_shipping_methods:{projectKey}
+        - view_shopping_lists:{projectKey}
+        - view_staged_quotes:{projectKey}
+        - view_standalone_prices:{projectKey}
+        - view_states:{projectKey}
+        - view_stores:{projectKey}
+        - view_tax_categories:{projectKey}
+        - view_types:{projectKey}
+    parameters:
+    - name: projectKey
+      in: path
+      description: The key of the commercetools Project whose change history to read
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    - name: resourceType
+      in: path
+      description: The type of resource to read the change history for, such as `product` or `order`
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+  /{projectKey}/{resourceType}/{iD}:
+    get:
+      summary: Get change history of a resource
+      description: 'The `view_audit_log:{projectKey}` scope is required, and depending on the [resource
+        type](ctp:history:type:ChangeHistoryResourceType) queried, their respective scopes must be granted.
+
+
+        If the request exceeds the rate limit, a [TooManyRequests](ctp:history:type:TooManyRequestsError)
+        error is returned.'
+      operationId: getResourceChangeHistory
+      parameters:
+      - name: date.from
+        in: query
+        description: Start of the time range, as a date-time or a number of hours before now. Defaults
+          to 24 hours ago
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/DateFilter'
+        x-annotation-default: 24
+        x-ballerina-name: dateFrom
+      - name: date.to
+        in: query
+        description: End of the time range, as a date-time or `now`. Defaults to `now`
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/DateFilter'
+        x-annotation-default: now
+        x-ballerina-name: dateTo
+      - name: limit
+        in: query
+        description: Maximum number of records to return. Defaults to 20
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+        x-annotation-default: 20
+      - name: offset
+        in: query
+        description: Number of records to skip, for pagination
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+        x-annotation-default: 0
+      - name: userId
+        in: query
+        description: Filter changes made by the user with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: userIds
+        in: query
+        description: Filter changes made by the users with these IDs
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: clientId
+        in: query
+        description: Filter changes made through the API client with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: customerId
+        in: query
+        description: Filter changes made by the customer with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: associateId
+        in: query
+        description: Filter changes made by the associate with this ID
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: businessUnit
+        in: query
+        description: Filter changes made on behalf of the business unit with this key
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        description: Filter records by the type of the change
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: source
+        in: query
+        description: Filter records by the origin of the change, for example the Merchant Center or the
+          API
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Source'
+      - name: changes
+        in: query
+        description: Filter records by the type of change, for example `addLineItem` or `setName`
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: stores
+        in: query
+        description: Filter changes made in the stores with these keys
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: excludePlatformInitiatedChanges
+        in: query
+        description: Whether to leave out changes made by the commercetools platform itself
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlatformInitiatedChange'
+      - name: expand
+        in: query
+        description: Reference expansion paths to resolve in the returned records
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+      - name: withTotal
+        in: query
+        description: Whether to include the total number of matching records in the response
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+        x-annotation-default: false
+      responses:
+        '200':
+          description: Records of the resource under query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordPagedQueryResponse'
+        '400':
+          description: Bad Request. A 400 is the most commonly expected error response and indicates that
+            a request failed due to providing bad input. Bad input can be a malformed request body, missing
+            required parameters, wrongly typed or malformed parameters or a parameter that references
+            another resource that does not exist. Clients need to resolve the problems mentioned in the
+            response before re-sending the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized. Indicate that the request is not properly authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden. Indicates that the authenticated client is not allowed to perform the
+            request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too Many Requests. Indicates that the client has exceeded the API rate limit. Reduce
+            the date range and resource types in your query to minimize the token usage, or retry the
+            request after some time (indicated in the `Retry-After` header).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error. A 500 indicates that the request failed due to a server-side
+            problem that needs to be resolved before subsequent requests can succeed. It either indicates
+            a temporary unavailability or permanent server-side problem that needs to be reported and
+            resolved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: 'Service Unavailable. The following general error codes can appear in responses
+            with the HTTP status code `503`
+
+            - `OverCapacity` The service is having trouble handling the load. The client application should
+            retry the request with exponential backoff up to a point where further delay is unacceptable.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+      - oauth_2_0:
+        - view_associate_roles:{projectKey}
+        - view_audit_log:{projectKey}
+        - view_business_units:{projectKey}
+        - view_cart_discounts:{projectKey}
+        - view_orders:{projectKey}
+        - view_orders:{projectKey}:{storeKey}
+        - view_categories:{projectKey}
+        - view_products:{projectKey}
+        - view_customers:{projectKey}
+        - view_customer_groups:{projectKey}
+        - view_discount_codes:{projectKey}
+        - view_key_value_documents:{projectKey}
+        - view_payments:{projectKey}
+        - view_product_selections:{projectKey}
+        - view_quotes:{projectKey}
+        - view_quote_requests:{projectKey}
+        - view_shipping_methods:{projectKey}
+        - view_shopping_lists:{projectKey}
+        - view_staged_quotes:{projectKey}
+        - view_standalone_prices:{projectKey}
+        - view_states:{projectKey}
+        - view_stores:{projectKey}
+        - view_tax_categories:{projectKey}
+        - view_types:{projectKey}
+    parameters:
+    - name: projectKey
+      in: path
+      description: The key of the commercetools Project whose change history to read
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    - name: resourceType
+      in: path
+      description: The type of resource to read the change history for, such as `product` or `order`
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    - name: iD
+      in: path
+      description: The ID of the resource whose change history to read
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
 components:
   schemas:
-    StoreKeyReference:
+    AssetChangeValue:
+      required:
+      - id
+      - name
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/LocalizedString'
+        id:
+          type: string
+    DiscountCodeReference:
       allOf:
-      - $ref: '#/components/schemas/KeyReference'
+      - $ref: '#/components/schemas/Reference'
       - required:
-        - key
-        - typeId
+        - id
         type: object
         properties:
           typeId:
             $ref: '#/components/schemas/ReferenceTypeId'
-          key:
+          id:
             type: string
-    Locale:
+    TransactionState:
       type: string
+      enum:
+      - Initial
+      - Pending
+      - Success
+      - Failure
+      x-annotation-package: Common
+    ReturnItem:
+      required:
+      - createdAt
+      - id
+      - lastModifiedAt
+      - paymentState
+      - quantity
+      - shipmentState
+      - type
+      type: object
+      properties:
+        shipmentState:
+          $ref: '#/components/schemas/ReturnShipmentState'
+        createdAt:
+          type: string
+          format: datetime
+        quantity:
+          type: integer
+          format: int64
+        lastModifiedAt:
+          type: string
+          format: datetime
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        comment:
+          type: string
+        id:
+          type: string
+        type:
+          type: string
+        paymentState:
+          $ref: '#/components/schemas/ReturnPaymentState'
+        key:
+          type: string
     Address:
       allOf:
       - $ref: '#/components/schemas/BaseAddress'
@@ -144,154 +1014,16 @@ components:
             type: string
           apartment:
             type: string
-    KeyReference:
+    ParcelChangeValue:
       required:
-      - key
-      - typeId
+      - createdAt
+      - id
       type: object
       properties:
-        typeId:
-          $ref: '#/components/schemas/ReferenceTypeId'
-        key:
+        createdAt:
           type: string
-      discriminator:
-        propertyName: typeId
-        mapping:
-          associate-role: '#/components/schemas/AssociateRoleKeyReference'
-          store: '#/components/schemas/StoreKeyReference'
-    Customer:
-      allOf:
-      - $ref: '#/components/schemas/BaseResource'
-      - required:
-        - addresses
-        - authenticationMode
-        - billingAddressIds
-        - createdAt
-        - customerGroupAssignments
-        - email
-        - id
-        - isEmailVerified
-        - lastModifiedAt
-        - shippingAddressIds
-        - stores
-        - version
-        type: object
-        properties:
-          lastName:
-            type: string
-          addresses:
-            type: array
-            items:
-              $ref: '#/components/schemas/Address'
-          lastModifiedAt:
-            type: string
-            format: datetime
-          companyName:
-            type: string
-          vatId:
-            type: string
-          title:
-            type: string
-          locale:
-            $ref: '#/components/schemas/Locale'
-          shippingAddressIds:
-            type: array
-            items:
-              type: string
-          isEmailVerified:
-            type: boolean
-          createdAt:
-            type: string
-            format: datetime
-          password:
-            type: string
-          id:
-            type: string
-          authenticationMode:
-            $ref: '#/components/schemas/AuthenticationMode'
-          key:
-            type: string
-          email:
-            type: string
-          customerGroup:
-            $ref: '#/components/schemas/CustomerGroupReference'
-          stores:
-            type: array
-            items:
-              $ref: '#/components/schemas/StoreKeyReference'
-          lastModifiedBy:
-            $ref: '#/components/schemas/LastModifiedBy'
-          custom:
-            $ref: '#/components/schemas/CustomFields'
-          externalId:
-            type: string
-          dateOfBirth:
-            type: string
-            format: date-only
-          customerGroupAssignments:
-            type: array
-            items:
-              $ref: '#/components/schemas/CustomerGroupAssignment'
-          customerNumber:
-            type: string
-          defaultShippingAddressId:
-            type: string
-          billingAddressIds:
-            type: array
-            items:
-              type: string
-          version:
-            type: integer
-            format: int64
-          defaultBillingAddressId:
-            type: string
-          firstName:
-            type: string
-          createdBy:
-            $ref: '#/components/schemas/CreatedBy'
-          middleName:
-            type: string
-          salutation:
-            type: string
-    RoundingMode:
-      type: string
-      enum:
-      - HalfEven
-      - HalfUp
-      - HalfDown
-      x-annotation-package: Cart
-      x-annotation-enumDescriptions:
-        HalfEven: '[Round half to even](https://en.wikipedia.org/wiki/Rounding#Rounding_half_to_even)n
-          nDefault mode for a new Cart.n'
-        HalfUp: '[Round half up](https://en.wikipedia.org/wiki/Rounding#Rounding_half_up)n'
-        HalfDown: '[Round half down](https://en.wikipedia.org/wiki/Rounding#Rounding_half_down)n'
-    BusinessUnitConfiguration:
-      required:
-      - myBusinessUnitStatusOnCreation
-      type: object
-      properties:
-        myBusinessUnitAssociateRoleOnCreation:
-          $ref: '#/components/schemas/AssociateRoleKeyReference'
-        myBusinessUnitStatusOnCreation:
-          $ref: '#/components/schemas/BusinessUnitConfigurationStatus'
-    FieldDefinition:
-      required:
-      - label
-      - name
-      - required
-      - type
-      type: object
-      properties:
-        name:
+        id:
           type: string
-        inputHint:
-          $ref: '#/components/schemas/TypeTextInputHint'
-        label:
-          $ref: '#/components/schemas/LocalizedString'
-        type:
-          $ref: '#/components/schemas/FieldType'
-        required:
-          type: boolean
     CustomerGroupAssignment:
       required:
       - customerGroup
@@ -299,202 +1031,277 @@ components:
       properties:
         customerGroup:
           $ref: '#/components/schemas/CustomerGroupReference'
-    SearchIndexingConfiguration:
-      type: object
-      properties:
-        businessUnits:
-          $ref: '#/components/schemas/SearchIndexingConfigurationValues'
-        productsSearch:
-          $ref: '#/components/schemas/SearchIndexingConfigurationValues'
-        orders:
-          $ref: '#/components/schemas/SearchIndexingConfigurationValues'
-        customers:
-          $ref: '#/components/schemas/SearchIndexingConfigurationValues'
-        products:
-          $ref: '#/components/schemas/SearchIndexingConfigurationValues'
-    SearchIndexingConfigurationStatus:
-      type: string
-      enum:
-      - Activated
-      - Deactivated
-      - Indexing
-      x-annotation-package: Project
-      x-annotation-enumDescriptions:
-        Activated: Indicates that search and suggest endpoints for the specified resource type are active.
-        Deactivated: Indicates that search and suggest endpoints for the specified resource type cannot
-          be used.
-        Indexing: Indicates that search and suggest endpoints can _temporarily_ not be used because the
-          search index is being re-built.
-    CurrencyCode:
-      type: string
-    BusinessUnitConfigurationStatus:
-      type: string
-      enum:
-      - Active
-      - Inactive
-      x-annotation-package: Project
-      x-annotation-enumDescriptions:
-        Active: The [Business Unit](ctp:api:type:BusinessUnit) can be used in [Orders](ctp:api:type:Order),
-          [Carts](ctp:api:type:Cart), and [Quotes](/api/quotes-overview) and can be updated using the
-          [My Business Unit endpoint](ctp:api:endpoint:/{projectKey}/me/business-units:POST).
-        Inactive: The [Business Unit](ctp:api:type:BusinessUnit) cannot be used in [Orders](ctp:api:type:Order),
-          [Carts](ctp:api:type:Cart), and [Quotes](/api/quotes-overview) and cannot be updated using the
-          [My Business Unit endpoint](ctp:api:endpoint:/{projectKey}/me/business-units:POST).
-    ResourceTypeId:
-      type: string
-      enum:
-      - address
-      - asset
-      - approval-flow
-      - approval-rule
-      - associate-role
-      - business-unit
-      - cart-discount
-      - category
-      - channel
-      - customer
-      - customer-group
-      - custom-line-item
-      - discount-code
-      - inventory-entry
-      - line-item
-      - order
-      - order-edit
-      - order-delivery
-      - order-parcel
-      - order-return-item
-      - payment
-      - payment-interface-interaction
-      - payment-method
-      - payment-method-info
-      - product-price
-      - product-selection
-      - product-tailoring
-      - quote
-      - reservation
-      - review
-      - recurring-order
-      - shipping
-      - shipping-method
-      - shopping-list
-      - shopping-list-text-line-item
-      - standalone-price
-      - store
-      - transaction
-      x-annotation-package: Type
-      x-annotation-enumDescriptions:
-        address: '[Address](ctp:api:type:Address) on [BusinessUnit](ctp:api:type:BusinessUnit), [Cart](ctp:api:type:Cart),
-          [Order](ctp:api:type:Order), [OrderEdit](ctp:api:type:OrderEdit), [Customer](ctp:api:type:Customer),
-          and [Channel](ctp:api:type:Channel)n'
-        asset: '[Asset](ctp:api:type:Asset) on [Category](ctp:api:type:Category) and [ProductVariant](ctp:api:type:ProductVariant)n'
-        approval-flow: '[ApprovalFlow](ctp:api:type:ApprovalFlow) - Only available for [B2B](/offering/commerce-b2b)-enabled
-          Projects.n'
-        approval-rule: '[ApprovalRule](ctp:api:type:ApprovalRule) - Only available for [B2B](/offering/commerce-b2b)-enabled
-          Projects.n'
-        associate-role: '[AssociateRole](ctp:api:type:AssociateRole) - Only available for [B2B](/offering/commerce-b2b)-enabled
-          Projects.n'
-        business-unit: '[BusinessUnit](ctp:api:type:BusinessUnit) - Only available for [B2B](/offering/commerce-b2b)-enabled
-          Projects.n'
-        cart-discount: '[CartDiscount](ctp:api:type:CartDiscount)n'
-        category: '[Category](ctp:api:type:Category)n'
-        channel: '[Channel](ctp:api:type:Channel)n'
-        custom-line-item: '[CustomLineItem](ctp:api:type:CustomLineItem) on [Cart](ctp:api:type:Cart)
-          and [Order](ctp:api:type:Order)n'
-        customer: '[Customer](ctp:api:type:Customer)n'
-        customer-group: '[CustomerGroup](ctp:api:type:CustomerGroup)n'
-        discount-code: '[DiscountCode](ctp:api:type:DiscountCode)n'
-        inventory-entry: '[InventoryEntry](ctp:api:type:InventoryEntry)n'
-        line-item: '[LineItem](ctp:api:type:LineItem) on [Cart](ctp:api:type:Cart) and [Order](ctp:api:type:Order),
-          and [LineItem](ctp:api:type:LineItem) on [ShoppingList](ctp:api:type:ShoppingList)n'
-        order: '[Cart](ctp:api:type:Cart) and [Order](ctp:api:type:Order).nWhen a [Cart](ctp:api:type:Cart)
-          is ordered, the [CustomFields](ctp:api:type:CustomFields) need to be copied to the [Order](ctp:api:type:Order).nFor
-          this reason, the Types for Carts are also valid for Orders, and hence both have the same identifier:
-          `order`.n'
-        order-edit: '[OrderEdit](ctp:api:type:OrderEdit)n'
-        order-delivery: '[Delivery](ctp:api:type:Delivery)n'
-        order-parcel: '[Parcel](ctp:api:type:Parcel)n'
-        order-return-item: '[ReturnItem](ctp:api:type:ReturnItem)n'
-        payment: '[Payment](ctp:api:type:Payment)n'
-        payment-interface-interaction: '[InterfaceInteraction](ctp:api:type:PaymentAddInterfaceInteractionAction)
-          on [Payment](ctp:api:type:Payment)n'
-        payment-method: '[PaymentMethod](ctp:api:type:PaymentMethod)n'
-        payment-method-info: '[PaymentMethodInfo](ctp:api:type:PaymentMethodInfo) on [Payment](ctp:api:type:Payment)n'
-        product-price: '[Embedded Price](ctp:api:type:Price) on [ProductVariant](ctp:api:type:ProductVariant)n'
-        product-selection: '[ProductSelection](ctp:api:type:ProductSelection)n'
-        product-tailoring: '[ProductTailoring](ctp:api:type:ProductTailoring)n'
-        quote: '[Quote](ctp:api:type:Quote), [QuoteRequest](ctp:api:type:QuoteRequest) and [StagedQuote](ctp:api:type:StagedQuote).nWhen
-          a [StagedQuote](ctp:api:type:StagedQuote) is created, the [CustomFields](ctp:api:type:CustomFields)
-          will be copied from the [QuoteRequest](ctp:api:type:QuoteRequest) and when a [Quote](ctp:api:type:Quote)
-          is created, the [CustomFields](ctp:api:type:CustomFields) will be copied from the [StagedQuote](ctp:api:type:StagedQuote).nFor
-          this reason, the Types for Quotes are also valid for QuoteRequests and StagedQuotes, and hence
-          all have the same identifier: `quote`.n'
-        reservation: '[Reservation](ctp:api:type:Reservation)n'
-        review: '[Review](ctp:api:type:Review)n'
-        recurring-order: '[RecurringOrder](ctp:api:type:RecurringOrder)n'
-        shipping: '[Shipping](ctp:api:type:Shipping)n'
-        shipping-method: '[ShippingMethod](ctp:api:type:ShippingMethod)n'
-        shopping-list: '[ShoppingList](ctp:api:type:ShoppingList)n'
-        shopping-list-text-line-item: '[TextLineItem](ctp:api:type:TextLineItem) on [ShoppingList](ctp:api:type:ShoppingList)n'
-        standalone-price: '[StandalonePrice](ctp:api:type:StandalonePrice)n'
-        store: '[Store](ctp:api:type:Store)n'
-        transaction: '[Transaction](ctp:api:type:Transaction) on [Payment](ctp:api:type:Payment)n'
-    CreatedBy:
-      allOf:
-      - $ref: '#/components/schemas/ClientLogging'
-      - type: object
-        properties:
-          anonymousId:
-            type: string
-          clientId:
-            type: string
-          externalUserId:
-            type: string
-          attributedTo:
-            $ref: '#/components/schemas/Attribution'
-          associate:
-            $ref: '#/components/schemas/CustomerReference'
-          customer:
-            $ref: '#/components/schemas/CustomerReference'
-    ShoppingListsConfiguration:
+    GraphQLErrorLocation:
       required:
-      - deleteDaysAfterLastModification
+      - column
+      - line
       type: object
       properties:
-        deleteDaysAfterLastModification:
+        line:
           type: integer
           format: int64
-    CustomerGroup:
-      allOf:
-      - $ref: '#/components/schemas/BaseResource'
-      - required:
-        - createdAt
-        - id
-        - lastModifiedAt
-        - name
-        - version
-        type: object
-        properties:
-          createdAt:
+        column:
+          type: integer
+          format: int64
+    ModifiedBy:
+      required:
+      - isPlatformClient
+      - type
+      type: object
+      properties:
+        anonymousId:
+          type: string
+        clientId:
+          type: string
+        isPlatformClient:
+          type: boolean
+        id:
+          type: string
+        type:
+          type: string
+        associate:
+          $ref: '#/components/schemas/Reference'
+        customer:
+          $ref: '#/components/schemas/Reference'
+    AttributeLocalizedEnumValue:
+      required:
+      - key
+      - label
+      type: object
+      properties:
+        label:
+          $ref: '#/components/schemas/LocalizedString'
+        key:
+          type: string
+    Image:
+      required:
+      - dimensions
+      - url
+      type: object
+      properties:
+        label:
+          type: string
+        url:
+          type: string
+        dimensions:
+          $ref: '#/components/schemas/ImageDimensions'
+    QuoteState:
+      type: string
+      enum:
+      - Pending
+      - Declined
+      - DeclinedForRenegotiation
+      - RenegotiationAddressed
+      - Accepted
+      - Withdrawn
+      x-annotation-package: Common
+    CurrencyCode:
+      type: string
+    ResourceIdentifier:
+      required:
+      - typeId
+      type: object
+      properties:
+        typeId:
+          $ref: '#/components/schemas/ReferenceTypeId'
+        id:
+          type: string
+        key:
+          type: string
+    ChannelRoleEnum:
+      type: string
+      enum:
+      - InventorySupply
+      - ProductDistribution
+      - OrderExport
+      - OrderImport
+      - Primary
+      x-annotation-package: Common
+    PriceTier:
+      required:
+      - minimumQuantity
+      - value
+      type: object
+      properties:
+        minimumQuantity:
+          type: integer
+          format: int64
+        value:
+          $ref: '#/components/schemas/TypedMoney'
+    SyncInfo:
+      required:
+      - channel
+      - syncedAt
+      type: object
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelReference'
+        externalId:
+          type: string
+        syncedAt:
+          type: string
+          format: datetime
+    Permission:
+      type: string
+      enum:
+      - AddChildUnits
+      - UpdateAssociates
+      - UpdateBusinessUnitDetails
+      - UpdateParentUnit
+      - ViewMyCarts
+      - ViewOthersCarts
+      - UpdateMyCarts
+      - UpdateOthersCarts
+      - CreateMyCarts
+      - CreateOthersCarts
+      - DeleteMyCarts
+      - DeleteOthersCarts
+      - ViewMyOrders
+      - ViewOthersOrders
+      - UpdateMyOrders
+      - UpdateOthersOrders
+      - CreateMyOrdersFromMyCarts
+      - CreateMyOrdersFromMyQuotes
+      - CreateOrdersFromOthersCarts
+      - CreateOrdersFromOthersQuotes
+      - ViewMyQuotes
+      - ViewOthersQuotes
+      - AcceptMyQuotes
+      - AcceptOthersQuotes
+      - DeclineMyQuotes
+      - DeclineOthersQuotes
+      - RenegotiateMyQuotes
+      - RenegotiateOthersQuotes
+      - ReassignMyQuotes
+      - ReassignOthersQuotes
+      - ViewMyQuoteRequests
+      - ViewOthersQuoteRequests
+      - UpdateMyQuoteRequests
+      - UpdateOthersQuoteRequests
+      - CreateMyQuoteRequestsFromMyCarts
+      - CreateQuoteRequestsFromOthersCarts
+      - CreateApprovalRules
+      - UpdateApprovalRules
+      - UpdateApprovalFlows
+      - ViewMyShoppingLists
+      - ViewOthersShoppingLists
+      - UpdateMyShoppingLists
+      - UpdateOthersShoppingLists
+      - CreateMyShoppingLists
+      - CreateOthersShoppingLists
+      - DeleteMyShoppingLists
+      - DeleteOthersShoppingLists
+      x-annotation-package: Common
+    Asset:
+      required:
+      - id
+      - name
+      - sources
+      type: object
+      properties:
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetSource'
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        name:
+          $ref: '#/components/schemas/LocalizedString'
+        description:
+          $ref: '#/components/schemas/LocalizedString'
+        id:
+          type: string
+        key:
+          type: string
+        tags:
+          type: array
+          items:
             type: string
-            format: datetime
-          lastModifiedAt:
-            type: string
-            format: datetime
-          createdBy:
-            $ref: '#/components/schemas/CreatedBy'
-          lastModifiedBy:
-            $ref: '#/components/schemas/LastModifiedBy'
-          custom:
-            $ref: '#/components/schemas/CustomFields'
-          name:
-            type: string
-          id:
-            type: string
-          version:
-            type: integer
-            format: int64
-          key:
-            type: string
+    TextInputHint:
+      type: string
+      enum:
+      - SingleLine
+      - MultiLine
+      x-annotation-package: Common
+    TaxMode:
+      type: string
+      enum:
+      - Platform
+      - External
+      - ExternalAmount
+      - Disabled
+      x-annotation-package: Common
+    PaymentInfo:
+      required:
+      - payments
+      type: object
+      properties:
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentReference'
+    AttributeConstraintEnum:
+      type: string
+      enum:
+      - None
+      - Unique
+      - CombinationUnique
+      - SameForAll
+      x-annotation-package: Common
+    StoreCountry:
+      required:
+      - code
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/CountryCode'
+    DiscountedLineItemPortion:
+      required:
+      - discount
+      - discountedAmount
+      type: object
+      properties:
+        discountedAmount:
+          $ref: '#/components/schemas/TypedMoney'
+        discount:
+          $ref: '#/components/schemas/Reference'
+    StagedQuoteState:
+      type: string
+      enum:
+      - InProgress
+      - Sent
+      - Closed
+      x-annotation-package: Common
+    LineItemPriceMode:
+      type: string
+      enum:
+      - Platform
+      - ExternalPrice
+      - ExternalTotal
+      x-annotation-package: Common
+    Parcel:
+      required:
+      - createdAt
+      - id
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: datetime
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryItem'
+        key:
+          type: string
+        measurements:
+          $ref: '#/components/schemas/ParcelMeasurements'
+        trackingData:
+          $ref: '#/components/schemas/TrackingData'
     ErrorObject:
       required:
       - code
@@ -505,316 +1312,441 @@ components:
           type: string
         message:
           type: string
-      additionalProperties:
-        type: string
-    Attribution:
-      required:
-      - source
+    BusinessUnitType:
+      type: string
+      enum:
+      - Company
+      - Division
+      x-annotation-package: Common
+    ProductPriceModeEnum:
+      type: string
+      enum:
+      - Embedded
+      - Standalone
+      x-annotation-package: Common
+      x-beta: true
+    GraphQLResponse:
       type: object
       properties:
-        clientId:
-          type: string
-        source:
-          $ref: '#/components/schemas/AttributionSource'
-    DiscountsConfiguration:
-      required:
-      - discountCombinationMode
-      type: object
-      properties:
-        discountCombinationMode:
-          $ref: '#/components/schemas/DiscountCombinationMode'
-    Project:
-      required:
-      - carts
-      - countries
-      - createdAt
-      - currencies
-      - discounts
-      - inventory
-      - key
-      - languages
-      - messages
-      - name
-      - version
-      type: object
-      properties:
-        externalOAuth:
-          $ref: '#/components/schemas/ExternalOAuth'
-        shoppingLists:
-          $ref: '#/components/schemas/ShoppingListsConfiguration'
-        languages:
+        data: {}
+        errors:
           type: array
           items:
-            $ref: '#/components/schemas/Locale'
-        searchIndexing:
-          $ref: '#/components/schemas/SearchIndexingConfiguration'
-        countries:
-          type: array
-          items:
-            $ref: '#/components/schemas/CountryCode'
-        inventory:
-          $ref: '#/components/schemas/InventoryConfiguration'
-        version:
+            $ref: '#/components/schemas/GraphQLError'
+    ReturnPaymentState:
+      type: string
+      enum:
+      - NonRefundable
+      - Initial
+      - Refunded
+      - NotRefunded
+      x-annotation-package: Common
+    DeliveryItem:
+      required:
+      - id
+      - quantity
+      type: object
+      properties:
+        quantity:
           type: integer
           format: int64
-        trialUntil:
+        id:
           type: string
-        productCatalogModel:
-          $ref: '#/components/schemas/ProductCatalogModel'
-        shippingRateInputType:
-          $ref: '#/components/schemas/ShippingRateInputType'
-        createdAt:
-          type: string
-          format: datetime
-        businessUnits:
-          $ref: '#/components/schemas/BusinessUnitConfiguration'
-        carts:
-          $ref: '#/components/schemas/CartsConfiguration'
-        discounts:
-          $ref: '#/components/schemas/DiscountsConfiguration'
+    ShippingMethodChangeValue:
+      required:
+      - id
+      - name
+      type: object
+      properties:
         name:
           type: string
-        messages:
-          $ref: '#/components/schemas/MessagesConfiguration'
+        id:
+          type: string
+    QuoteRequestState:
+      type: string
+      enum:
+      - Submitted
+      - Accepted
+      - Closed
+      - Rejected
+      - Cancelled
+      x-annotation-package: Common
+    Variant:
+      required:
+      - id
+      - key
+      - sku
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        sku:
+          type: string
         key:
           type: string
-        currencies:
-          type: array
-          items:
-            $ref: '#/components/schemas/CurrencyCode'
     AuthenticationMode:
       type: string
       enum:
       - Password
       - ExternalAuth
-      x-annotation-package: Customer
-      x-annotation-enumDescriptions:
-        Password: This is the default value. If set, the `password` field is required on [CustomerDraft](ctp:api:type:CustomerDraft)
-          and is present on [Customer](ctp:api:type:Customer).
-        ExternalAuth: If set, the `password` field is optional on [CustomerDraft](ctp:api:type:CustomerDraft)
-          and is not present on [Customer](ctp:api:type:Customer).
-    ShippingRateInputType:
+      x-annotation-package: Common
+    ChangeTargetChangeValue:
       required:
       - type
       type: object
       properties:
         type:
-          $ref: '#/components/schemas/ShippingRateTierType'
-    CustomFields:
-      required:
-      - fields
-      - type
-      type: object
-      properties:
-        type:
-          $ref: '#/components/schemas/TypeReference'
-        fields:
-          $ref: '#/components/schemas/FieldContainer'
+          type: string
+    DiscountCodeState:
+      type: string
+      enum:
+      - NotActive
+      - NotValid
+      - DoesNotMatchCart
+      - MatchesCart
+      - MaxApplicationReached
+      - ApplicationStoppedByPreviousDiscount
+      - ApplicationStoppedByGroupBestDeal
+      x-annotation-package: Common
     CustomerReference:
       allOf:
       - $ref: '#/components/schemas/Reference'
       - required:
         - id
-        - typeId
         type: object
         properties:
-          obj:
-            $ref: '#/components/schemas/Customer'
           typeId:
             $ref: '#/components/schemas/ReferenceTypeId'
           id:
             type: string
-    ShippingRateTierType:
+    DateStringFilter:
       type: string
       enum:
-      - CartValue
-      - CartClassification
-      - CartScore
-      x-annotation-package: ShippingMethod
-      x-annotation-enumDescriptions:
-        CartValue: '[CartValueTier](#cartvaluetier) based on the total value of the cart.n'
-        CartClassification: '[CartClassificationTier](#cartclassificationtier) based on classifications
-          assigned to the cart.n'
-        CartScore: '[CartScoreTier](#cartscoretier) based on a scoring system applied to the cart.n'
-    SearchIndexingConfigurationValues:
+      - now
+      x-annotation-package: ChangeHistory
+    ChangeValueChangeValue:
+      required:
+      - type
       type: object
       properties:
-        lastModifiedAt:
+        type:
+          type: string
+    TaxedItemPrice:
+      required:
+      - taxPortions
+      - totalGross
+      - totalNet
+      type: object
+      properties:
+        taxPortions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaxPortion'
+        totalTax:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        totalGross:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        totalNet:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+    ItemState:
+      required:
+      - quantity
+      - state
+      type: object
+      properties:
+        quantity:
+          type: integer
+          format: int64
+        state:
+          $ref: '#/components/schemas/StateReference'
+    TextLineItem:
+      required:
+      - addedAt
+      - id
+      - name
+      - quantity
+      type: object
+      properties:
+        addedAt:
           type: string
           format: datetime
-        lastModifiedBy:
-          $ref: '#/components/schemas/LastModifiedBy'
-        status:
-          $ref: '#/components/schemas/SearchIndexingConfigurationStatus'
-    AssociateRoleKeyReference:
+        quantity:
+          type: integer
+          format: int64
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        name:
+          $ref: '#/components/schemas/LocalizedString'
+        description:
+          $ref: '#/components/schemas/LocalizedString'
+        id:
+          type: string
+        key:
+          type: string
+    GeoLocation:
       allOf:
-      - $ref: '#/components/schemas/KeyReference'
+      - $ref: '#/components/schemas/GeoJson'
       - required:
-        - key
-        - typeId
+        - coordinates
+        - type
+        type: object
+        properties:
+          coordinates:
+            type: array
+            items:
+              type: integer
+              format: int32
+          type:
+            type: string
+    CustomFieldLocalizedEnumValue:
+      required:
+      - key
+      - label
+      type: object
+      properties:
+        label:
+          $ref: '#/components/schemas/LocalizedString'
+        key:
+          type: string
+    ZoneResourceIdentifier:
+      allOf:
+      - $ref: '#/components/schemas/ResourceIdentifier'
+      - type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          id:
+            type: string
+          key:
+            type: string
+    OrderState:
+      type: string
+      enum:
+      - Open
+      - Confirmed
+      - Complete
+      - Cancelled
+      x-annotation-package: Common
+    PaymentReference:
+      allOf:
+      - $ref: '#/components/schemas/Reference'
+      - required:
+        - id
         type: object
         properties:
           typeId:
             $ref: '#/components/schemas/ReferenceTypeId'
-          key:
+          id:
             type: string
-    LastModifiedBy:
-      allOf:
-      - $ref: '#/components/schemas/ClientLogging'
-      - type: object
-        properties:
-          anonymousId:
-            type: string
-          clientId:
-            type: string
-          externalUserId:
-            type: string
-          attributedTo:
-            $ref: '#/components/schemas/Attribution'
-          associate:
-            $ref: '#/components/schemas/CustomerReference'
-          customer:
-            $ref: '#/components/schemas/CustomerReference'
-    DiscountCombinationMode:
-      type: string
-      enum:
-      - BestDeal
-      - Stacking
-      x-annotation-package: Project
-      x-annotation-enumDescriptions:
-        BestDeal: Either Product Discounts or Cart Discounts are chosen for each Line Item in the Cart
-          based on the best deal for the Customer. Only one discount type applies per Line Item in the
-          Cart.
-        Stacking: Product Discounts and Cart Discounts are both applied to each Line Item in the Cart,
-          potentially increasing the total discount.
-    LocalizedString:
+    Attribute:
       required:
-      - /^[a-z]{2}(-[A-Z]{2})?$/
-      type: object
-      additionalProperties:
-        type: string
-    ProjectUpdate:
-      required:
-      - actions
-      - version
+      - name
+      - value
       type: object
       properties:
-        version:
-          type: integer
-          format: int64
-        actions:
-          type: array
-          items:
-            $ref: '#/components/schemas/ProjectUpdateAction'
-    AttributionSource:
+        name:
+          type: string
+        value: {}
+    SetCartClassificationShippingRateInputValue:
+      required:
+      - key
+      - label
+      - type
+      type: object
+      properties:
+        label:
+          $ref: '#/components/schemas/LocalizedString'
+        type:
+          type: string
+        key:
+          type: string
+    CartDiscountValue:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+    BusinessUnitResourceIdentifier:
+      allOf:
+      - $ref: '#/components/schemas/ResourceIdentifier'
+      - type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          id:
+            type: string
+          key:
+            type: string
+    InventoryMode:
       type: string
       enum:
-      - Import
-      - Export
+      - None
+      - TrackOnly
+      - ReserveOnOrder
       x-annotation-package: Common
-      x-annotation-enumDescriptions:
-        Import: Resource was created or updated during import.
-        Export: Resource was created or updated during export.
+    TaxedPrice:
+      required:
+      - taxPortions
+      - totalGross
+      - totalNet
+      type: object
+      properties:
+        taxPortions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaxPortion'
+        totalTax:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        totalGross:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        totalNet:
+          $ref: '#/components/schemas/CentPrecisionMoney'
     CustomerGroupReference:
       allOf:
       - $ref: '#/components/schemas/Reference'
       - required:
         - id
-        - typeId
         type: object
         properties:
-          obj:
-            $ref: '#/components/schemas/CustomerGroup'
           typeId:
             $ref: '#/components/schemas/ReferenceTypeId'
           id:
             type: string
+    TrackingData:
+      type: object
+      properties:
+        isReturn:
+          type: boolean
+        carrier:
+          type: string
+        providerTransaction:
+          type: string
+        provider:
+          type: string
+        trackingId:
+          type: string
+    GraphQLError:
+      required:
+      - extensions
+      - locations
+      - message
+      type: object
+      properties:
+        path:
+          type: array
+          items: {}
+        extensions:
+          $ref: '#/components/schemas/GraphQLErrorObject'
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphQLErrorLocation'
+        message:
+          type: string
+    FieldDefinitionOrderValue:
+      required:
+      - label
+      - name
+      type: object
+      properties:
+        name:
+          type: string
+        label:
+          $ref: '#/components/schemas/LocalizedString'
+    ReturnShipmentState:
+      type: string
+      enum:
+      - Advised
+      - Returned
+      - BackInStock
+      - Unusable
+      x-annotation-package: Common
     TypeReference:
       allOf:
       - $ref: '#/components/schemas/Reference'
       - required:
         - id
-        - typeId
         type: object
         properties:
-          obj:
-            $ref: '#/components/schemas/Type'
           typeId:
             $ref: '#/components/schemas/ReferenceTypeId'
           id:
             type: string
-    ProductCatalogModel:
+    PriceSelectionMode:
       type: string
       enum:
-      - Classic
-      - InMigration
-      - Modular
-      x-annotation-package: Project
-      x-annotation-enumDescriptions:
-        Classic: Product Variants are embedded in the Product. This is the default behavior.
-        InMigration: Product Variants remain embedded in the Product and Variant update actions on the
-          Product API are still accepted, but resources that reference a Variant, such as [Carts](/projects/carts)
-          and Order line items, discount matching, and Product Selections, resolve from modular Variants
-          by default. Use this transitional state to migrate your reads to the Modular Catalog model while
-          embedded Variant writes continue.
-        Modular: Product Variants are managed as standalone entities through the Variants endpoint. Variant-related
-          update actions on Products are not available in this mode. Pricing is exclusively handled through
-          [StandalonePrices](ctp:api:type:StandalonePrice); [Embedded Prices](ctp:api:type:Price) are
-          not supported.
-    CountryCode:
-      type: string
+      - Fixed
+      - Dynamic
+      x-annotation-package: Common
+      x-beta: true
+    DateFilter:
+      description: 'A point in time for filtering change history: the keyword `now`, a date-time string,
+        or a number of hours before now'
+      oneOf:
+      - $ref: '#/components/schemas/DateStringFilter'
+      - $ref: '#/components/schemas/DateTimeFilterValue'
+      - $ref: '#/components/schemas/HoursAgoFilterValue'
     FieldContainer:
       required:
       - /^[a-zA-Z0-9_-]{2,36}$/
       type: object
       additionalProperties:
         type: string
-    ExternalOAuth:
-      required:
-      - authorizationHeader
-      - url
-      type: object
-      properties:
-        authorizationHeader:
-          type: string
-        url:
-          type: string
+    BusinessUnitStatus:
+      type: string
+      enum:
+      - Active
+      - Inactive
+      x-annotation-package: Common
     TypeTextInputHint:
       type: string
       enum:
       - SingleLine
       - MultiLine
-      x-annotation-package: Type
-      x-annotation-enumDescriptions:
-        SingleLine: Hint for GUIs to display the field's content in a single line of text.
-        MultiLine: Hint for GUIs to display the field's content over multiple lines of text.
-    CartsConfiguration:
+      x-annotation-package: Common
+    BusinessUnitAssociateMode:
+      type: string
+      enum:
+      - Explicit
+      - ExplicitAndFromParent
+      x-annotation-package: Common
+    ProductVariantSelectionTypeEnum:
+      type: string
+      enum:
+      - inclusion
+      - exclusion
+      - includeOnly
+      - includeAllExcept
+      x-annotation-package: Common
+    LineItemRecurrenceInfo:
       required:
-      - deleteDaysAfterLastModification
+      - priceSelectionMode
+      - recurrencePolicy
       type: object
       properties:
-        taxRoundingMode:
-          $ref: '#/components/schemas/RoundingMode'
-        countryTaxRateFallbackEnabled:
-          type: boolean
-        deleteDaysAfterLastModification:
-          type: integer
-          format: int64
-        priceRoundingMode:
-          $ref: '#/components/schemas/RoundingMode'
-    ClientLogging:
-      type: object
-      properties:
-        anonymousId:
-          type: string
-        clientId:
-          type: string
-        externalUserId:
-          type: string
-        associate:
-          $ref: '#/components/schemas/CustomerReference'
-        customer:
-          $ref: '#/components/schemas/CustomerReference'
+        priceSelectionMode:
+          $ref: '#/components/schemas/PriceSelectionMode'
+        recurrencePolicy:
+          $ref: '#/components/schemas/RecurrencePolicyReference'
+    CentPrecisionMoney:
+      allOf:
+      - $ref: '#/components/schemas/TypedMoney'
+      - required:
+        - fractionDigits
+        type: object
+        properties:
+          centAmount:
+            type: integer
+            format: int64
+          fractionDigits:
+            type: integer
+            format: int32
+          type:
+            $ref: '#/components/schemas/MoneyType'
+          currencyCode:
+            $ref: '#/components/schemas/CurrencyCode'
     Reference:
       required:
       - id
@@ -828,45 +1760,39 @@ components:
       discriminator:
         propertyName: typeId
         mapping:
+          channel: '#/components/schemas/ChannelReference'
           customer-group: '#/components/schemas/CustomerGroupReference'
           customer: '#/components/schemas/CustomerReference'
+          discount-code: '#/components/schemas/DiscountCodeReference'
+          payment: '#/components/schemas/PaymentReference'
+          product-discount: '#/components/schemas/ProductDiscountReference'
+          product-selection: '#/components/schemas/ProductSelectionReference'
+          product-type: '#/components/schemas/ProductTypeReference'
+          recurrence-policy: '#/components/schemas/RecurrencePolicyReference'
+          shipping-method: '#/components/schemas/ShippingMethodReference'
+          state: '#/components/schemas/StateReference'
+          tax-category: '#/components/schemas/TaxCategoryReference'
           type: '#/components/schemas/TypeReference'
-    BaseResource:
+    CustomFieldEnumValue:
       required:
-      - createdAt
-      - id
-      - lastModifiedAt
-      - version
+      - key
+      - label
       type: object
       properties:
-        createdAt:
+        label:
           type: string
-          format: datetime
-        lastModifiedAt:
+        key:
           type: string
-          format: datetime
-        id:
-          type: string
-        version:
-          type: integer
-          format: int64
-    ProjectUpdateAction:
+    DiscountedPrice:
       required:
-      - action
+      - discount
+      - value
       type: object
       properties:
-        action:
-          type: string
-    MessagesConfiguration:
-      required:
-      - enabled
-      type: object
-      properties:
-        deleteDaysAfterCreation:
-          type: integer
-          format: int32
-        enabled:
-          type: boolean
+        discount:
+          $ref: '#/components/schemas/ProductDiscountReference'
+        value:
+          $ref: '#/components/schemas/TypedMoney'
     ReferenceTypeId:
       type: string
       enum:
@@ -889,7 +1815,6 @@ components:
       - extension
       - inventory-entry
       - key-value-document
-      - mcp-server
       - order
       - order-edit
       - payment-method
@@ -904,7 +1829,6 @@ components:
       - quote-request
       - recurrence-policy
       - recurring-order
-      - reservation
       - review
       - shipping-method
       - shopping-list
@@ -915,72 +1839,1427 @@ components:
       - subscription
       - tax-category
       - type
-      - variant
       - zone
       x-annotation-package: Common
-      x-annotation-enumDescriptions:
-        approval-flow: References an [ApprovalFlow](ctp:api:type:ApprovalFlow). Only available for [B2B](/offering/commerce-b2b)-enabled
-          Projects.n
-        approval-rule: References an [ApprovalRule](ctp:api:type:ApprovalRule). Only available for [B2B](/offering/commerce-b2b)-enabled
-          Projects.n
-        associate-role: References an [AssociateRole](ctp:api:type:AssociateRole). Only available for
-          [B2B](/offering/commerce-b2b)-enabled Projects.n
-        attribute-group: References an [AttributeGroup](ctp:api:type:AttributeGroup).n
-        business-unit: References a [BusinessUnit](ctp:api:type:BusinessUnit). Only available for [B2B](/offering/commerce-b2b)-enabled
-          Projects.n
-        cart: References a [Cart](ctp:api:type:Cart).n
-        cart-discount: References a [CartDiscount](ctp:api:type:CartDiscount).n
-        category: References a [Category](ctp:api:type:Category).n
-        channel: References a [Channel](ctp:api:type:Channel).n
-        customer: References a [Customer](ctp:api:type:Customer).n
-        customer-email-token: References a [CustomerToken](ctp:api:type:CustomerToken) for [email verification](/api/projects/customers#email-verification-of-customer).n
-        customer-group: References a [CustomerGroup](ctp:api:type:CustomerGroup).n
-        customer-password-token: References a [CustomerToken](ctp:api:type:CustomerToken) for [password
-          reset](/api/projects/customers#password-reset-of-customer).n
-        direct-discount: References a [DirectDiscount](ctp:api:type:DirectDiscount).n
-        discount-code: References a [DiscountCode](ctp:api:type:DiscountCode).n
-        discount-group: References a [DiscountGroup](ctp:api:type:DiscountGroup).n
-        extension: References an [Extension](ctp:api:type:Extension).n
-        inventory-entry: References an [InventoryEntry](ctp:api:type:InventoryEntry).n
-        key-value-document: References a [CustomObject](ctp:api:type:CustomObject).n
-        mcp-server: References an [McpServer](ctp:api:type:McpServer).n
-        order: References an [Order](ctp:api:type:Order).n
-        order-edit: References an [Order Edit](ctp:api:type:OrderEdit).n
-        payment-method: References a [PaymentMethod](ctp:api:type:PaymentMethod).n
-        payment: References a [Payment](ctp:api:type:Payment).n
-        product: References a [Product](ctp:api:type:Product).n
-        product-discount: References a [ProductDiscount](ctp:api:type:ProductDiscount).n
-        product-price: References an [Embedded Price](ctp:api:type:Price).n
-        product-selection: References a [ProductSelection](ctp:api:type:ProductSelection).n
-        product-tailoring: References a [ProductTailoring](ctp:api:type:ProductTailoring).n
-        product-type: References a [ProductType](ctp:api:type:ProductType).n
-        quote: References a [Quote](ctp:api:type:Quote).n
-        quote-request: References a [QuoteRequest](ctp:api:type:QuoteRequest).n
-        recurring-order: References a [RecurringOrder](ctp:api:type:RecurringOrder).n
-        recurrence-policy: References a [RecurrencePolicy](ctp:api:type:RecurrencePolicy).n
-        reservation: References a [Reservation](ctp:api:type:Reservation).n
-        review: References a [Review](ctp:api:type:Review).n
-        shipping-method: References a [ShippingMethod](ctp:api:type:ShippingMethod).n
-        shopping-list: References a [ShoppingList](ctp:api:type:ShoppingList).n
-        staged-quote: References a [StagedQuote](ctp:api:type:StagedQuote).n
-        standalone-price: References a [StandalonePrice](ctp:api:type:StandalonePrice).n
-        state: References a [State](ctp:api:type:State).n
-        store: References a [Store](ctp:api:type:Store).n
-        subscription: References a [Subscription](ctp:api:type:Subscription).n
-        tax-category: References a [TaxCategory](ctp:api:type:TaxCategory).n
-        type: References a [Type](ctp:api:type:Type).n
-        variant: References a [Variant](ctp:api:type:Variant).n
-        zone: References a [Zone](ctp:api:type:Zone).n
-    InventoryConfiguration:
+    DeliveryChangeValue:
       required:
-      - releaseExpiredReservations
+      - address
+      - items
+      - parcels
       type: object
       properties:
-        releaseExpiredReservations:
-          type: boolean
-        reservationExpirationInMinutes:
+        address:
+          $ref: '#/components/schemas/Address'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryItem'
+        parcels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Parcel'
+    SearchKeywords:
+      required:
+      - /^[a-z]{2}(-[A-Z]{2})?$/
+      type: object
+      additionalProperties:
+        type: string
+    ErrorResponse:
+      required:
+      - message
+      - statusCode
+      type: object
+      properties:
+        error_description:
+          type: string
+          x-ballerina-name: errorDescription
+        message:
+          type: string
+        error:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorObject'
+        statusCode:
           type: integer
           format: int32
+    TypedMoney:
+      allOf:
+      - $ref: '#/components/schemas/Money'
+      - required:
+        - fractionDigits
+        - type
+        type: object
+        properties:
+          centAmount:
+            type: integer
+            format: int64
+          fractionDigits:
+            type: integer
+            format: int32
+          type:
+            $ref: '#/components/schemas/MoneyType'
+          currencyCode:
+            $ref: '#/components/schemas/CurrencyCode'
+        discriminator:
+          propertyName: type
+          mapping:
+            centPrecision: '#/components/schemas/CentPrecisionMoney'
+    PatternComponent:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+    CartDiscountTarget:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+    CustomShippingMethodChangeValue:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          type: string
+    ProductSelectionSetting:
+      required:
+      - active
+      - productSelection
+      type: object
+      properties:
+        active:
+          type: boolean
+        productSelection:
+          $ref: '#/components/schemas/ProductSelectionReference'
+    DiscountTypeCombination:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+    Locale:
+      type: string
+    ShippingMethodTaxAmountChangeValue:
+      required:
+      - taxRate
+      - taxedPrice
+      type: object
+      properties:
+        taxRate:
+          $ref: '#/components/schemas/TaxRate'
+        taxedPrice:
+          $ref: '#/components/schemas/TaxedPrice'
+    StateTypeEnum:
+      type: string
+      enum:
+      - OrderState
+      - RecurringOrderState
+      - LineItemState
+      - ProductState
+      - ReviewState
+      - PaymentState
+      - QuoteRequestState
+      - StagedQuoteState
+      - QuoteState
+      x-annotation-package: Common
+    ValidFromAndUntilValue:
+      required:
+      - validFrom
+      - validUntil
+      type: object
+      properties:
+        validUntil:
+          type: string
+        validFrom:
+          type: string
+    MethodTaxRate:
+      required:
+      - shippingMethodKey
+      type: object
+      properties:
+        taxRate:
+          $ref: '#/components/schemas/TaxRate'
+        shippingMethodKey:
+          type: string
+    BusinessUnitKeyReference:
+      allOf:
+      - $ref: '#/components/schemas/KeyReference'
+      - required:
+        - key
+        type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          key:
+            type: string
+    KeyReference:
+      required:
+      - key
+      - typeId
+      type: object
+      properties:
+        typeId:
+          $ref: '#/components/schemas/ReferenceTypeId'
+        key:
+          type: string
+      discriminator:
+        propertyName: typeId
+        mapping:
+          associate-role: '#/components/schemas/AssociateRoleKeyReference'
+          business-unit: '#/components/schemas/BusinessUnitKeyReference'
+    RoundingMode:
+      type: string
+      enum:
+      - HalfEven
+      - HalfUp
+      - HalfDown
+      x-annotation-package: Common
+    FieldDefinition:
+      required:
+      - label
+      - name
+      - required
+      - type
+      type: object
+      properties:
+        name:
+          type: string
+        inputHint:
+          $ref: '#/components/schemas/TypeTextInputHint'
+        label:
+          $ref: '#/components/schemas/LocalizedString'
+        type:
+          $ref: '#/components/schemas/FieldType'
+        required:
+          type: boolean
+    Label:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+    ProductVariantAvailability:
+      type: object
+      properties:
+        availableQuantity:
+          type: integer
+          format: int64
+        channels:
+          $ref: '#/components/schemas/ProductVariantChannelAvailabilityMap'
+        id:
+          type: string
+        restockableInDays:
+          type: integer
+          format: int64
+        version:
+          type: integer
+          format: int64
+        isOnStock:
+          type: boolean
+    ShippingMethodReference:
+      allOf:
+      - $ref: '#/components/schemas/Reference'
+      - required:
+        - id
+        type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          id:
+            type: string
+    TaxCalculationMode:
+      type: string
+      enum:
+      - LineItemLevel
+      - UnitPriceLevel
+      x-annotation-package: Common
+    GraphQLRequest:
+      required:
+      - query
+      type: object
+      properties:
+        variables:
+          $ref: '#/components/schemas/GraphQLVariablesMap'
+        query:
+          type: string
+        operationName:
+          type: string
+    Reservation:
+      required:
+      - checkoutStartedAt
+      - createdAt
+      - owner
+      - quantity
+      type: object
+      properties:
+        owner:
+          $ref: '#/components/schemas/Reference'
+        createdAt:
+          type: string
+        checkoutStartedAt:
+          type: string
+        quantity:
+          type: integer
+          format: int32
+    LineItemMode:
+      type: string
+      enum:
+      - Standard
+      - GiftLineItem
+      x-annotation-package: Common
+    AttributeType:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          type: string
+    SuggestTokenizer:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+    ShippingInfo:
+      required:
+      - price
+      - shippingMethodName
+      - shippingMethodState
+      - shippingRate
+      type: object
+      properties:
+        shippingRate:
+          $ref: '#/components/schemas/ShippingRate'
+        taxRate:
+          $ref: '#/components/schemas/TaxRate'
+        discountedPrice:
+          $ref: '#/components/schemas/DiscountedLineItemPrice'
+        shippingMethodState:
+          $ref: '#/components/schemas/ShippingMethodState'
+        price:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        taxedPrice:
+          $ref: '#/components/schemas/TaxedItemPrice'
+        shippingMethod:
+          $ref: '#/components/schemas/ShippingMethodReference'
+        shippingMethodName:
+          type: string
+        taxCategory:
+          $ref: '#/components/schemas/TaxCategoryReference'
+        deliveries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Delivery'
+    ProductDiscountReference:
+      allOf:
+      - $ref: '#/components/schemas/Reference'
+      - required:
+        - id
+        type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          id:
+            type: string
+    ReturnInfo:
+      required:
+      - items
+      type: object
+      properties:
+        returnDate:
+          type: string
+          format: datetime
+        returnTrackingId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReturnItem'
+    TransactionChangeValue:
+      required:
+      - id
+      - interactionId
+      - timestamp
+      type: object
+      properties:
+        interactionId:
+          type: string
+        id:
+          type: string
+        timestamp:
+          type: string
+    CustomLineItemRecurrenceInfo:
+      required:
+      - recurrencePolicy
+      type: object
+      properties:
+        recurrencePolicy:
+          $ref: '#/components/schemas/RecurrencePolicyReference'
+    DateTimeFilterValue:
+      type: string
+      format: datetime
+    StateReference:
+      allOf:
+      - $ref: '#/components/schemas/Reference'
+      - required:
+        - id
+        type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          id:
+            type: string
+    HoursAgoFilterValue:
+      type: number
+      format: double
+    StackingMode:
+      type: string
+      enum:
+      - Stacking
+      - StopAfterThisDiscount
+      x-annotation-package: Common
+    DiscountedLineItemPrice:
+      required:
+      - includedDiscounts
+      - value
+      type: object
+      properties:
+        includedDiscounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiscountedLineItemPortion'
+        value:
+          $ref: '#/components/schemas/TypedMoney'
+    ProductVariantChannelAvailabilityMap:
+      required:
+      - /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+      type: object
+      additionalProperties:
+        type: string
+    ScopedPrice:
+      required:
+      - currentValue
+      - id
+      - value
+      type: object
+      properties:
+        discounted:
+          $ref: '#/components/schemas/DiscountedPrice'
+        country:
+          $ref: '#/components/schemas/CountryCode'
+        customerGroup:
+          $ref: '#/components/schemas/CustomerGroupReference'
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        channel:
+          $ref: '#/components/schemas/ChannelReference'
+        validUntil:
+          type: string
+          format: datetime
+        id:
+          type: string
+        validFrom:
+          type: string
+          format: datetime
+        value:
+          $ref: '#/components/schemas/TypedMoney'
+        currentValue:
+          $ref: '#/components/schemas/TypedMoney'
+    PlatformInitiatedChange:
+      type: string
+      enum:
+      - excludeAll
+      - addInheritedAssociate
+      - changeIncludedInStatistics
+      - changeInheritedAssociate
+      - changeLastVariantId
+      - changeLineItemName
+      - changeLineItemPublished
+      - changeReviewRatingStatistics
+      - changeTopLevelUnit
+      - removeInheritedAssociate
+      - setAncestors
+      - setApplicationVersion
+      - setInheritedAssociates
+      - setInheritedStores
+      - setIsValid
+      - setLineItemDeactivatedAt
+      - setProductCount
+      - setReservations
+      - setVariantAvailability
+      x-annotation-package: ChangeHistory
+    DiscountedLineItemPriceForQuantity:
+      required:
+      - discountedPrice
+      - quantity
+      type: object
+      properties:
+        quantity:
+          type: integer
+          format: int64
+        discountedPrice:
+          $ref: '#/components/schemas/DiscountedLineItemPrice'
+    TaxPortion:
+      required:
+      - amount
+      - rate
+      type: object
+      properties:
+        amount:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        rate:
+          type: number
+          format: double
+        name:
+          type: string
+    AssociateRoleInheritanceMode:
+      type: string
+      enum:
+      - Enabled
+      - Disabled
+      x-annotation-package: Common
+    CustomFields:
+      required:
+      - fields
+      - type
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/TypeReference'
+        fields:
+          $ref: '#/components/schemas/FieldContainer'
+    ShippingRateTierType:
+      type: string
+      enum:
+      - CartValue
+      - CartClassification
+      - CartScore
+      x-annotation-package: Common
+    Transaction:
+      required:
+      - amount
+      - id
+      - state
+      - type
+      type: object
+      properties:
+        amount:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        interactionId:
+          type: string
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        id:
+          type: string
+        state:
+          $ref: '#/components/schemas/TransactionState'
+        type:
+          $ref: '#/components/schemas/TransactionType'
+        timestamp:
+          type: string
+          format: datetime
+    BusinessUnitStoreMode:
+      type: string
+      enum:
+      - Explicit
+      - FromParent
+      x-annotation-package: Common
+    ImageDimensions:
+      required:
+      - h
+      - w
+      type: object
+      properties:
+        w:
+          type: integer
+          format: int32
+        h:
+          type: integer
+          format: int32
+    MoneyType:
+      type: string
+      enum:
+      - centPrecision
+      - highPrecision
+      x-annotation-package: Common
+    Price:
+      required:
+      - id
+      - value
+      type: object
+      properties:
+        discounted:
+          $ref: '#/components/schemas/DiscountedPrice'
+        country:
+          $ref: '#/components/schemas/CountryCode'
+        tiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceTier'
+        customerGroup:
+          $ref: '#/components/schemas/CustomerGroupReference'
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        channel:
+          $ref: '#/components/schemas/ChannelReference'
+        validUntil:
+          type: string
+          format: datetime
+        id:
+          type: string
+        validFrom:
+          type: string
+          format: datetime
+        value:
+          $ref: '#/components/schemas/TypedMoney'
+        key:
+          type: string
+        recurrencePolicy:
+          $ref: '#/components/schemas/RecurrencePolicyReference'
+    ShippingMethodState:
+      type: string
+      enum:
+      - DoesNotMatchCart
+      - MatchesCart
+      x-annotation-package: Common
+    AssociateRoleKeyReference:
+      allOf:
+      - $ref: '#/components/schemas/KeyReference'
+      - required:
+        - key
+        type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          key:
+            type: string
+    InheritedAssociateRoleAssignment:
+      required:
+      - associateRole
+      - source
+      type: object
+      properties:
+        associateRole:
+          $ref: '#/components/schemas/AssociateRoleKeyReference'
+        source:
+          $ref: '#/components/schemas/BusinessUnitKeyReference'
+    ParcelMeasurements:
+      type: object
+      properties:
+        weightInGram:
+          type: integer
+          format: int32
+        lengthInMillimeter:
+          type: integer
+          format: int32
+        heightInMillimeter:
+          type: integer
+          format: int32
+        widthInMillimeter:
+          type: integer
+          format: int32
+    AssociateRoleDeprecated:
+      type: string
+      enum:
+      - Admin
+      - Buyer
+      x-annotation-package: Common
+    SelectionMode:
+      type: string
+      enum:
+      - Cheapest
+      - MostExpensive
+      x-annotation-package: Common
+    ShipmentState:
+      type: string
+      enum:
+      - Shipped
+      - Delivered
+      - Ready
+      - Pending
+      - Delayed
+      - Partial
+      - Backorder
+      - Canceled
+      x-annotation-package: Common
+    ItemShippingDetails:
+      required:
+      - targets
+      - valid
+      type: object
+      properties:
+        valid:
+          type: boolean
+        targets:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemShippingTarget'
+    TransactionType:
+      type: string
+      enum:
+      - Authorization
+      - CancelAuthorization
+      - Charge
+      - Refund
+      - Chargeback
+      x-annotation-package: Common
+    ShoppingListLineItem:
+      required:
+      - addedAt
+      - id
+      - name
+      - productId
+      - productType
+      - published
+      - quantity
+      type: object
+      properties:
+        addedAt:
+          type: string
+          format: datetime
+        quantity:
+          type: integer
+          format: int64
+        productId:
+          type: string
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        deactivatedAt:
+          type: string
+          format: datetime
+        published:
+          type: boolean
+        productSlug:
+          $ref: '#/components/schemas/LocalizedString'
+        name:
+          $ref: '#/components/schemas/LocalizedString'
+        variant:
+          $ref: '#/components/schemas/ProductVariant'
+        id:
+          type: string
+        variantId:
+          type: integer
+          format: int64
+        key:
+          type: string
+        productType:
+          $ref: '#/components/schemas/ProductTypeReference'
+    RecurrencePolicyReference:
+      allOf:
+      - $ref: '#/components/schemas/Reference'
+      - required:
+        - id
+        type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          id:
+            type: string
+    InventoryQuantityValue:
+      required:
+      - availableQuantity
+      - quantityOnStock
+      type: object
+      properties:
+        availableQuantity:
+          type: integer
+          format: int32
+        quantityOnStock:
+          type: integer
+          format: int32
+    ShippingRate:
+      required:
+      - price
+      - tiers
+      type: object
+      properties:
+        tiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShippingRatePriceTier'
+        price:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        freeAbove:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        isMatching:
+          type: boolean
+    ShoppingListLineItemValue:
+      required:
+      - id
+      - name
+      - variantId
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/LocalizedString'
+        id:
+          type: string
+        variantId:
+          type: integer
+          format: int32
+    PaymentState:
+      type: string
+      enum:
+      - BalanceDue
+      - Failed
+      - Pending
+      - CreditOwed
+      - Paid
+      x-annotation-package: Common
+    SetCartScoreShippingRateInputValue:
+      required:
+      - score
+      - type
+      type: object
+      properties:
+        score:
+          type: integer
+          format: int32
+        type:
+          type: string
+    AttributeDefinition:
+      required:
+      - attributeConstraint
+      - inputHint
+      - isRequired
+      - isSearchable
+      - label
+      - level
+      - name
+      - type
+      type: object
+      properties:
+        isRequired:
+          type: boolean
+        level:
+          $ref: '#/components/schemas/AttributeLevelEnum'
+        name:
+          type: string
+        attributeConstraint:
+          $ref: '#/components/schemas/AttributeConstraintEnum'
+        inputHint:
+          $ref: '#/components/schemas/TextInputHint'
+        label:
+          $ref: '#/components/schemas/LocalizedString'
+        isSearchable:
+          type: boolean
+        type:
+          $ref: '#/components/schemas/AttributeType'
+        inputTip:
+          $ref: '#/components/schemas/LocalizedString'
+    ShippingRatePriceTier:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/ShippingRateTierType'
+    BusinessUnitApprovalRuleMode:
+      type: string
+      enum:
+      - Explicit
+      - ExplicitAndFromParent
+      x-annotation-package: Common
+    GeoJson:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          Point: '#/components/schemas/GeoLocation'
+    LocalizedString:
+      required:
+      - /^[a-z]{2}(-[A-Z]{2})?$/
+      type: object
+      additionalProperties:
+        type: string
+    AttributePlainEnumValue:
+      required:
+      - key
+      - label
+      type: object
+      properties:
+        label:
+          type: string
+        key:
+          type: string
+    Source:
+      type: string
+      enum:
+      - MerchantCenter
+      - ImpEx
+      - ApiClient
+      x-annotation-package: ChangeHistory
+      x-annotation-enumDescriptions:
+        MerchantCenter: The change was made through the Merchant Center.
+        ApiClient: The change was made through an API Client.
+        ImpEx: The change was made through the now-decommissioned ImpEx tool.
+    CategoryOrderHints:
+      required:
+      - /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
+      type: object
+      additionalProperties:
+        type: string
+    AssociateRoleAssignment:
+      required:
+      - associateRole
+      - inheritance
+      type: object
+      properties:
+        inheritance:
+          $ref: '#/components/schemas/AssociateRoleInheritanceMode'
+        associateRole:
+          $ref: '#/components/schemas/AssociateRoleKeyReference'
+    Money:
+      required:
+      - centAmount
+      - currencyCode
+      type: object
+      properties:
+        centAmount:
+          type: integer
+          format: int64
+        currencyCode:
+          $ref: '#/components/schemas/CurrencyCode'
+    AssetDimensions:
+      required:
+      - h
+      - w
+      type: object
+      properties:
+        w:
+          type: integer
+          format: int32
+        h:
+          type: integer
+          format: int32
+    InheritedAssociate:
+      required:
+      - associateRoleAssignments
+      - customer
+      type: object
+      properties:
+        associateRoleAssignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/InheritedAssociateRoleAssignment'
+        customer:
+          $ref: '#/components/schemas/CustomerReference'
+    TextLineItemValue:
+      required:
+      - id
+      - name
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/LocalizedString'
+        id:
+          type: string
+    GraphQLErrorObject:
+      required:
+      - //
+      - code
+      type: object
+      properties:
+        code:
+          type: string
+      additionalProperties:
+        type: string
+    RecordPagedQueryResponse:
+      required:
+      - count
+      - limit
+      - offset
+      - results
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        limit:
+          type: integer
+          format: int32
+        count:
+          type: integer
+          format: int32
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Record'
+    CustomLineItemPriceMode:
+      type: string
+      enum:
+      - Standard
+      - External
+      x-annotation-package: Common
+    DiscountedTotalPricePortion:
+      required:
+      - discount
+      - discountedAmount
+      type: object
+      properties:
+        discountedAmount:
+          $ref: '#/components/schemas/TypedMoney'
+        discount:
+          $ref: '#/components/schemas/Reference'
+    ChannelReference:
+      allOf:
+      - $ref: '#/components/schemas/Reference'
+      - required:
+        - id
+        type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          id:
+            type: string
+    TaxRate:
+      required:
+      - amount
+      - country
+      - includedInPrice
+      - name
+      type: object
+      properties:
+        country:
+          $ref: '#/components/schemas/CountryCode'
+        amount:
+          type: number
+          format: double
+        includedInPrice:
+          type: boolean
+        name:
+          type: string
+        id:
+          type: string
+        state:
+          type: string
+        key:
+          type: string
+        subRates:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubRate'
+    Record:
+      required:
+      - changes
+      - label
+      - modifiedAt
+      - modifiedBy
+      - previousLabel
+      - previousVersion
+      - resource
+      - stores
+      - type
+      - version
+      - withoutChanges
+      type: object
+      properties:
+        withoutChanges:
+          type: boolean
+        businessUnit:
+          $ref: '#/components/schemas/KeyReference'
+        resource:
+          $ref: '#/components/schemas/ResourceIdentifier'
+        previousVersion:
+          type: integer
+          format: int32
+        modifiedAt:
+          type: string
+        stores:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyReference'
+        previousLabel:
+          $ref: '#/components/schemas/Label'
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Change'
+        modifiedBy:
+          $ref: '#/components/schemas/ModifiedBy'
+        label:
+          $ref: '#/components/schemas/Label'
+        type:
+          type: string
+        version:
+          type: integer
+          format: int32
+    Shipping:
+      required:
+      - shippingAddress
+      - shippingInfo
+      - shippingKey
+      type: object
+      properties:
+        shippingCustomFields:
+          $ref: '#/components/schemas/CustomFields'
+        shippingRateInput:
+          $ref: '#/components/schemas/ShippingRateInput'
+        shippingInfo:
+          $ref: '#/components/schemas/ShippingInfo'
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        shippingKey:
+          type: string
+    CountryCode:
+      type: string
+    ProductVariant:
+      required:
+      - id
+      type: object
+      properties:
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        scopedPriceDiscounted:
+          type: boolean
+        availability:
+          $ref: '#/components/schemas/ProductVariantAvailability'
+        scopedPrice:
+          $ref: '#/components/schemas/ScopedPrice'
+        assets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Asset'
+        isMatchingVariant:
+          type: boolean
+        price:
+          $ref: '#/components/schemas/Price'
+        attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attribute'
+        id:
+          type: integer
+          format: int64
+        sku:
+          type: string
+        prices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Price'
+        recurrencePrices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Price'
+        key:
+          type: string
+    CustomLineItem:
+      required:
+      - discountedPricePerQuantity
+      - id
+      - money
+      - name
+      - perMethodTaxRate
+      - priceMode
+      - quantity
+      - slug
+      - state
+      - taxedPricePortions
+      - totalPrice
+      type: object
+      properties:
+        quantity:
+          type: integer
+          format: int64
+        priceMode:
+          $ref: '#/components/schemas/CustomLineItemPriceMode'
+        totalPrice:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        taxedPrice:
+          $ref: '#/components/schemas/TaxedItemPrice'
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        discountedPricePerQuantity:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiscountedLineItemPriceForQuantity'
+        taxCategory:
+          $ref: '#/components/schemas/TaxCategoryReference'
+        taxedPricePortions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodTaxedPrice'
+        taxRate:
+          $ref: '#/components/schemas/TaxRate'
+        money:
+          $ref: '#/components/schemas/TypedMoney'
+        shippingDetails:
+          $ref: '#/components/schemas/ItemShippingDetails'
+        name:
+          $ref: '#/components/schemas/LocalizedString'
+        id:
+          type: string
+        state:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemState'
+        perMethodTaxRate:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodTaxRate'
+        key:
+          type: string
+        slug:
+          type: string
+        recurrenceInfo:
+          $ref: '#/components/schemas/CustomLineItemRecurrenceInfo'
+    AssetSource:
+      required:
+      - uri
+      type: object
+      properties:
+        uri:
+          type: string
+        contentType:
+          type: string
+        key:
+          type: string
+        dimensions:
+          $ref: '#/components/schemas/AssetDimensions'
+    ItemShippingTarget:
+      required:
+      - addressKey
+      - quantity
+      type: object
+      properties:
+        quantity:
+          type: integer
+          format: int64
+        addressKey:
+          type: string
+        shippingMethodKey:
+          type: string
+    ProductSelectionReference:
+      allOf:
+      - $ref: '#/components/schemas/Reference'
+      - required:
+        - id
+        type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          id:
+            type: string
+    DirectDiscount:
+      required:
+      - id
+      - value
+      type: object
+      properties:
+        id:
+          type: string
+        value:
+          $ref: '#/components/schemas/CartDiscountValue'
+        target:
+          $ref: '#/components/schemas/CartDiscountTarget'
+    ShippingRateInput:
+      required:
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+    AttributeLevelEnum:
+      type: string
+      enum:
+      - Product
+      - Variant
+      x-annotation-package: Common
+    ChangeHistoryResourceType:
+      type: string
+      enum:
+      - associate-role
+      - business-unit
+      - cart-discount
+      - category
+      - channel
+      - customer
+      - customer-group
+      - discount-code
+      - inventory-entry
+      - key-value-document
+      - order
+      - payment
+      - product
+      - product-discount
+      - product-selection
+      - product-type
+      - quote-request
+      - quote
+      - review
+      - shipping-method
+      - shopping-list
+      - staged-quote
+      - standalone-price
+      - state
+      - store
+      - tax-category
+      - type
+      - zone
+      x-annotation-package: ChangeHistory
+      x-annotation-enumDescriptions:
+        associate-role: for [AssociateRole](ctp:api:type:AssociateRole) - Only available for [B2B](/offering/commerce-b2b)-enabled
+          Projects.
+        business-unit: for [BusinessUnit](ctp:api:type:BusinessUnit) - Only available for [B2B](/offering/commerce-b2b)-enabled
+          Projects.
+        cart-discount: for [CartDiscount](ctp:api:type:CartDiscount)
+        category: for [Category](ctp:api:type:Category)
+        channel: for [Channel](ctp:api:type:Channel)
+        customer: for [Customer](ctp:api:type:Customer)
+        customer-group: for [CustomerGroup](ctp:api:type:CustomerGroup)
+        discount-code: for [DiscountCode](ctp:api:type:DiscountCode)
+        inventory-entry: for [InventoryEntry](ctp:api:type:InventoryEntry)
+        key-value-document: for [CustomObject](ctp:api:type:CustomObject)
+        order: for [Order](ctp:api:type:Order)
+        payment: for [Payment](ctp:api:type:Payment)
+        product: for [Product](ctp:api:type:Product)
+        product-discount: for [ProductDiscount](ctp:api:type:ProductDiscount)
+        product-selection: for [ProductSelection](ctp:api:type:ProductSelection)
+        product-type: for [ProductType](ctp:api:type:ProductType)
+        quote-request: for [QuoteRequest](ctp:api:type:QuoteRequest)
+        quote: for [Quote](ctp:api:type:Quote)
+        review: for [Review](ctp:api:type:Review)
+        shipping-method: for [ShippingMethod](ctp:api:type:ShippingMethod)
+        shopping-list: for [ShoppingList](ctp:api:type:ShoppingList)
+        staged-quote: for [StagedQuote](ctp:api:type:StagedQuote)
+        standalone-price: for [StandalonePrice](ctp:api:type:StandalonePrice)
+        state: for [State](ctp:api:type:State)
+        store: for [Store](ctp:api:type:Store)
+        tax-category: for [TaxCategory](ctp:api:type:TaxCategory)
+        type: for [Type](ctp:api:type:Type)
+        zone: for [Zone](ctp:api:type:Zone)
+    LineItem:
+      required:
+      - discountedPricePerQuantity
+      - id
+      - lineItemMode
+      - name
+      - perMethodTaxRate
+      - price
+      - priceMode
+      - productId
+      - productType
+      - quantity
+      - state
+      - taxedPricePortions
+      - totalPrice
+      - variant
+      type: object
+      properties:
+        addedAt:
+          type: string
+          format: datetime
+        lastModifiedAt:
+          type: string
+          format: datetime
+        priceMode:
+          $ref: '#/components/schemas/LineItemPriceMode'
+        totalPrice:
+          $ref: '#/components/schemas/CentPrecisionMoney'
+        taxedPrice:
+          $ref: '#/components/schemas/TaxedItemPrice'
+        productKey:
+          type: string
+        inventoryMode:
+          $ref: '#/components/schemas/InventoryMode'
+        shippingDetails:
+          $ref: '#/components/schemas/ItemShippingDetails'
+        price:
+          $ref: '#/components/schemas/Price'
+        variant:
+          $ref: '#/components/schemas/ProductVariant'
+        supplyChannel:
+          $ref: '#/components/schemas/ChannelReference'
+        id:
+          type: string
+        state:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemState'
+        distributionChannel:
+          $ref: '#/components/schemas/ChannelReference'
+        key:
+          type: string
+        productType:
+          $ref: '#/components/schemas/ProductTypeReference'
+        quantity:
+          type: integer
+          format: int64
+        productId:
+          type: string
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        productSlug:
+          $ref: '#/components/schemas/LocalizedString'
+        discountedPricePerQuantity:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiscountedLineItemPriceForQuantity'
+        taxedPricePortions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodTaxedPrice'
+        taxRate:
+          $ref: '#/components/schemas/TaxRate'
+        name:
+          $ref: '#/components/schemas/LocalizedString'
+        perMethodTaxRate:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodTaxRate'
+        lineItemMode:
+          $ref: '#/components/schemas/LineItemMode'
+        recurrenceInfo:
+          $ref: '#/components/schemas/LineItemRecurrenceInfo'
+    TaxCategoryReference:
+      allOf:
+      - $ref: '#/components/schemas/Reference'
+      - required:
+        - id
+        type: object
+        properties:
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
+          id:
+            type: string
+    Change:
+      required:
+      - change
+      - type
+      type: object
+      properties:
+        change:
+          type: string
+        type:
+          type: string
+    ProductVariantExclusion:
+      required:
+      - skus
+      type: object
+      properties:
+        skus:
+          type: array
+          items:
+            type: string
     BaseAddress:
       required:
       - country
@@ -1043,160 +3322,157 @@ components:
       properties:
         name:
           type: string
-    ErrorResponse:
+    StateRoleEnum:
+      type: string
+      enum:
+      - ReviewIncludedInStatistics
+      - Return
+      x-annotation-package: Common
+    ProductVariantSelection:
       required:
-      - message
-      - statusCode
+      - type
       type: object
       properties:
-        message:
+        type:
+          $ref: '#/components/schemas/ProductVariantSelectionTypeEnum'
+    MethodTaxedPrice:
+      required:
+      - shippingMethodKey
+      type: object
+      properties:
+        taxedPrice:
+          $ref: '#/components/schemas/TaxedItemPrice'
+        shippingMethodKey:
           type: string
-        errors:
-          type: array
-          items:
-            $ref: '#/components/schemas/ErrorObject'
-        statusCode:
+    GraphQLVariablesMap:
+      required:
+      - //
+      type: object
+      additionalProperties:
+        type: string
+    ReviewRatingStatistics:
+      required:
+      - averageRating
+      - count
+      - highestRating
+      - lowestRating
+      - ratingsDistribution
+      type: object
+      properties:
+        highestRating:
+          type: number
+          format: double
+        averageRating:
+          type: number
+          format: double
+        count:
           type: integer
           format: int32
-    Type:
+        lowestRating:
+          type: number
+          format: double
+        ratingsDistribution:
+          type: object
+    DiscountOnTotalPrice:
+      required:
+      - discountedAmount
+      - includedDiscounts
+      type: object
+      properties:
+        discountedAmount:
+          $ref: '#/components/schemas/TypedMoney'
+        discountedNetAmount:
+          $ref: '#/components/schemas/TypedMoney'
+        includedDiscounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiscountedTotalPricePortion'
+        discountedGrossAmount:
+          $ref: '#/components/schemas/TypedMoney'
+    SubRate:
+      required:
+      - amount
+      - name
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+        name:
+          type: string
+    Delivery:
+      required:
+      - createdAt
+      - id
+      - items
+      - parcels
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: datetime
+        address:
+          $ref: '#/components/schemas/Address'
+        custom:
+          $ref: '#/components/schemas/CustomFields'
+        id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryItem'
+        key:
+          type: string
+        parcels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Parcel'
+    Associate:
+      required:
+      - associateRoleAssignments
+      - customer
+      type: object
+      properties:
+        associateRoleAssignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssociateRoleAssignment'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssociateRoleDeprecated'
+        customer:
+          $ref: '#/components/schemas/CustomerReference'
+    DiscountCodeInfo:
+      required:
+      - discountCode
+      - state
+      type: object
+      properties:
+        discountCode:
+          $ref: '#/components/schemas/DiscountCodeReference'
+        state:
+          $ref: '#/components/schemas/DiscountCodeState'
+    ProductTypeReference:
       allOf:
-      - $ref: '#/components/schemas/BaseResource'
+      - $ref: '#/components/schemas/Reference'
       - required:
-        - createdAt
-        - fieldDefinitions
         - id
-        - key
-        - lastModifiedAt
-        - name
-        - resourceTypeIds
-        - version
         type: object
         properties:
-          createdAt:
-            type: string
-            format: datetime
-          lastModifiedAt:
-            type: string
-            format: datetime
-          createdBy:
-            $ref: '#/components/schemas/CreatedBy'
-          lastModifiedBy:
-            $ref: '#/components/schemas/LastModifiedBy'
-          name:
-            $ref: '#/components/schemas/LocalizedString'
-          description:
-            $ref: '#/components/schemas/LocalizedString'
-          fieldDefinitions:
-            type: array
-            items:
-              $ref: '#/components/schemas/FieldDefinition'
+          typeId:
+            $ref: '#/components/schemas/ReferenceTypeId'
           id:
             type: string
-          version:
-            type: integer
-            format: int64
-          key:
-            type: string
-          resourceTypeIds:
-            type: array
-            items:
-              $ref: '#/components/schemas/ResourceTypeId'
-  responses:
-    conflicting_409:
-      description: "## Conflict\n\nA 409 indicates that the current version of the resource targeted by\
-        \ the request (with the intention to modify or delete it) is different from that provided in the\
-        \ request.\nIn response to this, the client will usually want to request the newest version of\
-        \ the resource to see what has been changed and decide what changes to apply to the newest version.\n\
-        \nA 409 Conflict indicates a concurrent modification and usually occurs on a versioned resource,\
-        \ which requires the client to provide the version of the resource to perform a change.\n\nThe\
-        \ following general error codes can appear in responses with the HTTP status code `409`:\n\n*\
-        \ `ConcurrentModification`\n  The request conflicts with the current state of the involved resource(s).\n\
-        \  Typically, the request attempts to modify a resource that is out of date,\n  i.e. that has\
-        \ been modified by another client since the last time it was retrieved.\n  The client application\
-        \ should resolve the conflict (with or without involving the end user)\n  before retrying the\
-        \ request."
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    errorable_401:
-      description: '## Unauthorized
-
-
-        A 401 indicates that the request is not properly authenticated.'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    errorable_500:
-      description: "## Internal Server Error\n\nA 500 indicates that a request failed due to a server-side\
-        \ problem that needs to be resolved before subsequent\nrequests can succeed. It either indicates\
-        \ a temporary unavailability or permanent server-side problem that needs\nto be reported and resolved.\n\
-        \nThe following general error codes can appear in responses with the HTTP status code `500`:\n\
-        \n* `General`\n  A server-side problem occurred that is not further specified.\n  These errors\
-        \ [should be reported](https://support.commercetools.com/)."
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    errorable_502:
-      description: 'A 502 indicates that a request failed due to a server-side problem caused by scaling
-        infrastructure resources.
-
-        The client application should retry the request with exponential backoff up to a point where further
-        delay is unacceptable.'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    errorable_404:
-      description: "## Not Found\n\nA 404 indicates that the addressed resource was not found / does not\
-        \ exist.\n\nThe following general error codes can appear in responses with the HTTP status code\
-        \ `404`:\n\n* `ResourceNotFound`\n  The resource addressed by the request URL does not exist."
-      content: {}
-    errorable_503:
-      description: "## Service Unavailable\n\nThe following general error codes can appear in responses\
-        \ with the HTTP status code `503`:\n\n* `OverCapacity`\n  The service is having trouble handling\
-        \ the load. The client application should retry the request with\n  exponential backoff up to\
-        \ a point where further delay is unacceptable.\n\n* `PendingOperation`\n  A previous conflicting\
-        \ operation is still pending and needs to finish before the request can succeed.\n  The client\
-        \ application should retry the request with exponential backoff up to a point where further delay\n\
-        \  is unacceptable. If these errors persist, [should be reported](https://support.commercetools.com/)."
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    errorable_400:
-      description: "## Bad Request\n\nA 400 is the most commonly expected error response and indicates\
-        \ that a request failed due to providing bad input.\nBad input can be a malformed request body,\
-        \ missing required parameters, wrongly typed or malformed parameters or\na parameter that references\
-        \ another resource that does not exist. Clients need to resolve the problems mentioned\nin the\
-        \ response before re-sending the request.\n\nThe following general error codes can appear in responses\
-        \ with the HTTP status code `400`:\n\n* `InvalidInput`\n  Invalid input has been sent to the service.\n\
-        \  The client application should validate the input according to the constraints described in\
-        \ the error message\n  before sending the request.\n\n* `InvalidOperation`\n  The resource(s)\
-        \ involved in the request are not in a valid state for the operation. The client application\n\
-        \  should validate the constraints described in the error message before sending the request.\n\
-        \n* `InvalidField`\n  A field has an invalid value.\n  Extra fields:\n  * `field` - String\n \
-        \   The name of the field.\n  * `invalidValue` - *\n    The invalid value.\n  * `allowedValues`\
-        \ - Array of * - Optional\n    A fixed set of allowed values for the field, if any.\n\n* `RequiredField`\n\
-        \  A required field is missing a value.\n  Extra fields:\n  * `field` - String\n    The name of\
-        \ the field.\n\n* `DuplicateField`\n  A value for a field conflicts with an existing duplicate\
-        \ value.\n  Extra fields:\n  * `field` - String\n    The name of the field.\n  * `duplicateValue`\
-        \ - *\n    The offending duplicate value."
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    errorable_403:
-      description: '## Forbidden
-
-
-        A 403 indicates that the authenticated client is not allowed to perform the request.'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
+    Location:
+      required:
+      - country
+      type: object
+      properties:
+        country:
+          $ref: '#/components/schemas/CountryCode'
+        state:
+          type: string
   securitySchemes:
     oauth_2_0:
       type: oauth2
@@ -1211,102 +3487,65 @@ components:
 
         a client will be given an `access_token`, which they need to include in requests
 
-        to authorized service endpoints via the HTTP `Authorization` header like this:
+        to authorized service endpoints via the HTTP `Authorization` header.
+
+
+        Scopes are used to grant an application different levels of access to data on behalf of the end
+        user. Each API may declare one or more scopes.
 
         '
       flows:
         clientCredentials:
           tokenUrl: https://auth.us-central1.gcp.commercetools.com/oauth/token
           scopes:
-            view_api_clients:{projectKey}: ''
-            manage_api_clients:{projectKey}: ''
-            view_approval_flows:{projectKey}: ''
-            manage_approval_flows:{projectKey}: ''
-            view_approval_rules:{projectKey}: ''
-            manage_approval_rules:{projectKey}: ''
             view_associate_roles:{projectKey}: ''
             manage_associate_roles:{projectKey}: ''
-            view_attribute_groups:{projectKey}: ''
-            manage_attribute_groups:{projectKey}: ''
             view_audit_log:{projectKey}: ''
             view_business_units:{projectKey}: ''
             manage_business_units:{projectKey}: ''
             view_business_units:{projectKey}:{storeKey}: ''
             manage_business_units:{projectKey}:{storeKey}: ''
-            manage_my_business_units:{projectKey}: ''
             view_cart_discounts:{projectKey}: ''
             manage_cart_discounts:{projectKey}: ''
             view_cart_discounts:{projectKey}:{storeKey}: ''
             manage_cart_discounts:{projectKey}:{storeKey}: ''
             view_categories:{projectKey}: ''
             manage_categories:{projectKey}: ''
-            view_channels:{projectKey}: ''
-            manage_channels:{projectKey}: ''
             view_customer_groups:{projectKey}: ''
             manage_customer_groups:{projectKey}: ''
             view_customers:{projectKey}: ''
             manage_customers:{projectKey}: ''
             view_customers:{projectKey}:{storeKey}: ''
             manage_customers:{projectKey}:{storeKey}: ''
-            manage_my_profile:{projectKey}: ''
-            manage_my_profile:{projectKey}:{storeKey}: ''
             view_discount_codes:{projectKey}: ''
             manage_discount_codes:{projectKey}: ''
             manage_extensions:{projectKey}: ''
-            manage_intake_agent:{projectKey}: ''
-            view_mcp_servers:{projectKey}: ''
-            manage_mcp_servers:{projectKey}: ''
             view_key_value_documents:{projectKey}: ''
             manage_key_value_documents:{projectKey}: ''
-            view_messages:{projectKey}: ''
             view_orders:{projectKey}: ''
             manage_orders:{projectKey}: ''
             view_orders:{projectKey}:{storeKey}: ''
             manage_orders:{projectKey}:{storeKey}: ''
-            manage_my_orders:{projectKey}: ''
-            manage_my_orders:{projectKey}:{storeKey}: ''
-            manage_locked_carts:{projectKey}: ''
-            view_order_edits:{projectKey}: ''
-            manage_order_edits:{projectKey}: ''
-            view_payment_methods:{projectKey}: ''
-            manage_payment_methods:{projectKey}: ''
             view_payments:{projectKey}: ''
             manage_payments:{projectKey}: ''
-            manage_my_payments:{projectKey}: ''
-            view_product_discounts:{projectKey}: ''
-            manage_product_discounts:{projectKey}: ''
             view_products:{projectKey}: ''
             manage_products:{projectKey}: ''
-            view_published_products:{projectKey}: ''
             view_product_selections:{projectKey}: ''
             manage_product_selections:{projectKey}: ''
-            view_product_types:{projectKey}: ''
-            manage_product_types:{projectKey}: ''
-            manage_project:{projectKey}: ''
-            view_project_settings:{projectKey}: ''
-            manage_project_settings:{projectKey}: ''
             view_quote_requests:{projectKey}: ''
             manage_quote_requests:{projectKey}: ''
             view_quote_requests:{projectKey}:{storeKey}: ''
             manage_quote_requests:{projectKey}:{storeKey}: ''
-            manage_my_quote_requests:{projectKey}: ''
             view_quotes:{projectKey}: ''
             manage_quotes:{projectKey}: ''
             view_quotes:{projectKey}:{storeKey}: ''
             manage_quotes:{projectKey}:{storeKey}: ''
-            manage_my_quotes:{projectKey}: ''
-            view_recurring_orders:{projectKey}: ''
-            manage_recurring_orders:{projectKey}: ''
-            view_recurrence_policies:{projectKey}: ''
-            manage_recurrence_policies:{projectKey}: ''
             view_shipping_methods:{projectKey}: ''
             manage_shipping_methods:{projectKey}: ''
             view_shopping_lists:{projectKey}: ''
             manage_shopping_lists:{projectKey}: ''
             view_shopping_lists:{projectKey}:{storeKey}: ''
             manage_shopping_lists:{projectKey}:{storeKey}: ''
-            manage_my_shopping_lists:{projectKey}: ''
-            manage_my_shopping_lists:{projectKey}:{storeKey}: ''
             view_staged_quotes:{projectKey}: ''
             manage_staged_quotes:{projectKey}: ''
             view_staged_quotes:{projectKey}:{storeKey}: ''
@@ -1317,15 +3556,7 @@ components:
             manage_states:{projectKey}: ''
             view_stores:{projectKey}: ''
             manage_stores:{projectKey}: ''
-            manage_subscriptions:{projectKey}: ''
             view_tax_categories:{projectKey}: ''
             manage_tax_categories:{projectKey}: ''
             view_types:{projectKey}: ''
             manage_types:{projectKey}: ''
-            view_zones:{projectKey}: ''
-            manage_zones:{projectKey}: ''
-            anonymous_id:{id}: ''
-            create_anonymous_token:{projectKey}: ''
-            customer_id:{id}: ''
-            external_user_id:{externalUserId}: ''
-            introspect_oauth_tokens:{projectKey}: ''

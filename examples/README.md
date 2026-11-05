@@ -2,9 +2,9 @@
 
 The `ballerinax/commercetools.auditlog` connector provides practical examples illustrating usage in various scenarios.
 
-1. **[Project settings review](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/project_settings_review)** - Read the Project settings, report the currency, country, language, cart and message configuration, and fail when a required currency is missing.
+1. **[Recent changes report](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/recent_changes_report)** - Read the Project's change history for a recent time window, follow every page, and report how many changes each user made.
 
-2. **[Project name update](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/project_name_update)** - Rename the Project with a versioned update action and verify the change by reading the Project again.
+2. **[Resource change trail](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/resource_change_trail)** - Find the most recently changed resource of a type and print its full change trail.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ The `ballerinax/commercetools.auditlog` connector provides practical examples il
 clientId = "<client-id>"
 clientSecret = "<client-secret>"
 tokenUrl = "<auth-url>/oauth/token"
-apiUrl = "<api-url>"
+apiUrl = "<history-api-url>"
 projectKey = "<project-key>"
 ```
 
