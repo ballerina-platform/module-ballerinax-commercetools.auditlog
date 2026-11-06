@@ -2,13 +2,25 @@
 
 The `ballerinax/commercetools.auditlog` connector provides practical examples illustrating usage in various scenarios.
 
-[//]: # (TODO: Add examples)
-1. 
-2. 
+1. **[Recent changes report](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/recent_changes_report)** - Read the Project's change history for a recent time window, follow every page, and report how many changes each user made.
+
+2. **[Resource change trail](https://github.com/ballerina-platform/module-ballerinax-commercetools.auditlog/tree/main/examples/resource_change_trail)** - Find the most recently changed resource of a type and print its full change trail.
 
 ## Prerequisites
 
-[//]: # (TODO: Add prerequisites)
+1. Create a commercetools API client as described in the [Setup guide](https://central.ballerina.io/ballerinax/commercetools.auditlog/latest#setup-guide).
+
+2. For each example, create a `Config.toml` file with the related configuration. Here's an example of how your Config.toml file should look:
+
+```toml
+clientId = "<client-id>"
+clientSecret = "<client-secret>"
+tokenUrl = "<auth-url>/oauth/token"
+apiUrl = "<history-api-url>"
+projectKey = "<project-key>"
+```
+
+Each example lists the additional values it needs in its own README.
 
 ## Running an example
 
